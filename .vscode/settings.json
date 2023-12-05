@@ -1,0 +1,12 @@
+{
+    "editor.formatOnSave": true,
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "driver": "PostgreSQL",
+            "name": "localhost",
+            "connectString": "postgresql:///tusker?host=/run/postgresql"
+        }
+    ],
+}
