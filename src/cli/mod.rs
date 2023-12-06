@@ -18,19 +18,20 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub enum Commands {
+    /// Schema commands (diffing)
     Schema(schema::SchemaCommand),
     /// Remove all temporary databases, schemas and tables created by
     /// tusker
     Clean(clean::CleanArgs),
-    /// Get types of a given query
+    /// Query commands
     #[command(alias = "q")]
     Query(query::QueryCommand),
-    /// Config
+    /// Configuration commands
     #[command(alias = "cfg")]
     Config(config::ConfigCommand),
     /// Migration commands
-    #[command(alias = "m")]
-    Migration(tusker_migrate::cli::Command),
+    #[command(aliases = ["m", "mig"])]
+    Migration(tusker_migration::cli::Command),
     /// Alias for "schema diff"
     #[command(alias = "d")]
     Diff(schema::diff::DiffArgs),
