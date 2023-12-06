@@ -29,17 +29,17 @@ pub struct QueryTypeArgs {
     filename: OsString,
 }
 
-pub async fn cmd(cfg: &Config, args: QueryCommand) -> Result<()> {
-    match args.command {
+pub async fn cmd(cfg: &Config, args: &QueryCommand) -> Result<()> {
+    match &args.command {
         QuerySubcommand::Types(args) => cmd_query_type(cfg, args).await?,
     }
     Ok(())
 }
 
-async fn cmd_query_type(cfg: &Config, args: QueryTypeArgs) -> Result<()> {
+async fn cmd_query_type(cfg: &Config, args: &QueryTypeArgs) -> Result<()> {
     let client = cfg.database.connect().await?;
 
-    let content = fs::read(args.filename)?;
+    let content = fs::read(&args.filename)?;
     let sql = String::from_utf8(content)?;
 
     let mut hasher = Sha512::new();

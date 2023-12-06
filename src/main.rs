@@ -1,7 +1,10 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand, ValueEnum};
 use commands::{
-    check::CheckArgs, clean::CleanArgs, config::ConfigCommand, diff::DiffArgs, query::QueryCommand,
+    clean::CleanArgs,
+    config::ConfigCommand,
+    query::QueryCommand,
+    schema::{diff::DiffArgs, SchemaCommand},
 };
 use config::Config;
 
@@ -18,21 +21,7 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
-    /// Show differences between two schemas
-    ///
-    /// This command calculates the difference between two database schemas.
-    /// The from- and to-parameter accept one of the following backends:
-    /// migrations, schema, database
-    #[command(alias = "d")]
-    Diff(DiffArgs),
-    /// Check for differences between schemas
-    ///
-    /// This command checks for differences between two or more schemas.
-    /// Exit code 0 means that the schemas are all in sync. Otherwise
-    /// the exit code 1 is used. This is useful for continuous integration
-    /// checks.
-    #[command(alias = "chk")]
-    Check(CheckArgs),
+    Schema(SchemaCommand),
     /// Remove all temporary databases, schemas and tables created by
     /// tusker
     Clean(CleanArgs),
@@ -42,6 +31,9 @@ enum Commands {
     /// Config
     #[command(alias = "cfg")]
     Config(ConfigCommand),
+    /// Alias for "schema diff"
+    #[command(alias = "d")]
+    Diff(DiffArgs),
 }
 
 #[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
@@ -65,18 +57,16 @@ async fn main() -> Result<()> {
     let args = Cli::parse();
     let cfg = Config::new()?;
 
-    match args.command {
-        Commands::Diff(cmd_args) => {
-            unimplemented!("This command is not implemented, yet.");
-        }
-        Commands::Check(cmd_args) => {
-            unimplemented!("This command is not implemented, yet.");
+    match &args.command {
+        Commands::Schema(cmd_args) => {
+            commands::schema::cmd(&cfg, cmd_args).await?;
         }
         Commands::Clean(cmd_args) => {
-            unimplemented!("This command is not implemented, yet.");
+            commands::clean::cmd(&cfg, cmd_args).await?;
         }
         Commands::Query(args) => commands::query::cmd(&cfg, args).await?,
         Commands::Config(args) => commands::config::cmd(&cfg, args).await?,
+        Commands::Diff(args) => commands::schema::diff::cmd(&cfg, args).await?,
     }
     Ok(())
 }

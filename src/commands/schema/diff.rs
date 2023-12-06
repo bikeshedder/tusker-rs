@@ -1,6 +1,7 @@
+use anyhow::Result;
 use clap::Parser;
 
-use crate::Backend;
+use crate::{config::Config, Backend};
 
 #[derive(Debug, Parser)]
 pub struct DiffArgs {
@@ -24,4 +25,8 @@ pub struct DiffArgs {
     /// don't output privilege differences
     #[arg(long, group = "group_privileges")]
     without_privileges: bool,
+}
+
+pub async fn cmd(cfg: &Config, args: &DiffArgs) -> Result<()> {
+    unimplemented!()
 }

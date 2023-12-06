@@ -1,6 +1,7 @@
+use anyhow::Result;
 use clap::Parser;
 
-use crate::Backend;
+use crate::{config::Config, Backend};
 
 #[derive(Debug, Parser)]
 pub struct CheckArgs {
@@ -19,4 +20,8 @@ pub struct CheckArgs {
     /// don't check privilege differences
     #[arg(long, group = "group_privileges")]
     without_privileges: bool,
+}
+
+pub async fn cmd(cfg: &Config, args: &CheckArgs) -> Result<()> {
+    unimplemented!()
 }

@@ -329,6 +329,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "deranged"
+version = "0.3.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8eb30d70a07a3b04884d2677f06bec33509dc67ca60d92949e5535352d3191dc"
+dependencies = [
+ "powerfmt",
+]
+
+[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -833,6 +842,7 @@ dependencies = [
  "bytes",
  "fallible-iterator",
  "postgres-protocol 0.6.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "time",
 ]
 
 [[package]]
@@ -844,6 +854,12 @@ dependencies = [
  "fallible-iterator",
  "postgres-protocol 0.6.6 (git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id)",
 ]
+
+[[package]]
+name = "powerfmt"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "439ee305def115ba05938db6eb1644ff94165c5ab5e9420d1c1bcedbba909391"
 
 [[package]]
 name = "ppv-lite86"
@@ -1084,6 +1100,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "time"
+version = "0.3.30"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c4a34ab300f2dee6e562c10a046fc05e358b29f9bf92277f30c3c8d82275f6f5"
+dependencies = [
+ "deranged",
+ "powerfmt",
+ "serde",
+ "time-core",
+]
+
+[[package]]
+name = "time-core"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ef927ca75afb808a4d64dd374f00a2adf8d0fcff8e7b184af886c3c87ec4a3f3"
+
+[[package]]
 name = "tinyvec"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1291,6 +1325,7 @@ dependencies = [
  "deadpool-postgres",
  "dotenvy",
  "serde",
+ "time",
  "tokio",
  "tokio-postgres 0.7.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "tusker-query",
