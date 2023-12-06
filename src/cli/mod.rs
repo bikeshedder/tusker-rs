@@ -37,14 +37,14 @@ pub async fn run(cfg: &Config) -> Result<()> {
     let args = Cli::parse();
     match &args.command {
         Commands::Schema(cmd_args) => {
-            schema::cmd(&cfg, cmd_args).await?;
+            schema::cmd(cfg, cmd_args).await?;
         }
         Commands::Clean(cmd_args) => {
-            clean::cmd(&cfg, cmd_args).await?;
+            clean::cmd(cfg, cmd_args).await?;
         }
-        Commands::Query(args) => query::cmd(&cfg, args).await?,
-        Commands::Config(args) => config::cmd(&cfg, args).await?,
-        Commands::Diff(args) => schema::diff::cmd(&cfg, args).await?,
+        Commands::Query(args) => query::cmd(cfg, args).await?,
+        Commands::Config(args) => config::cmd(cfg, args).await?,
+        Commands::Diff(args) => schema::diff::cmd(cfg, args).await?,
     }
     Ok(())
 }
