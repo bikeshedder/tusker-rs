@@ -9,8 +9,11 @@
             "connectString": "postgresql:///tusker?host=/run/postgresql"
         }
     ],
+    "[sql]": {
+        "editor.formatOnSave": false
+    },
     "sqltools.format": {
-        "language": "pl/sql",
+        "language": "sql",
         "linesBetweenQueries": 2,
         "reservedWordCase": "upper"
     }
