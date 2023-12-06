@@ -819,7 +819,7 @@ dependencies = [
 [[package]]
 name = "postgres-protocol"
 version = "0.6.6"
-source = "git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id#388c7b75f4a33edd3b15989a7841a6da6623aefd"
+source = "git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id#87876150d79e637767247176e339bf01a8b32d3b"
 dependencies = [
  "base64 0.21.5",
  "byteorder",
@@ -848,11 +848,12 @@ dependencies = [
 [[package]]
 name = "postgres-types"
 version = "0.2.6"
-source = "git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id#388c7b75f4a33edd3b15989a7841a6da6623aefd"
+source = "git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id#87876150d79e637767247176e339bf01a8b32d3b"
 dependencies = [
  "bytes",
  "fallible-iterator",
  "postgres-protocol 0.6.6 (git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id)",
+ "time",
 ]
 
 [[package]]
@@ -1080,6 +1081,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "termcolor"
+version = "1.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff1bc3d3f05aff0403e8ac0d92ced918ec05b666a43f83297ccef5bea8a3d449"
+dependencies = [
+ "winapi-util",
+]
+
+[[package]]
 name = "thiserror"
 version = "1.0.50"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1189,7 +1199,7 @@ dependencies = [
 [[package]]
 name = "tokio-postgres"
 version = "0.7.10"
-source = "git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id#388c7b75f4a33edd3b15989a7841a6da6623aefd"
+source = "git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id#87876150d79e637767247176e339bf01a8b32d3b"
 dependencies = [
  "async-trait",
  "byteorder",
@@ -1313,6 +1323,7 @@ dependencies = [
  "tokio",
  "tokio-postgres 0.7.10 (git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id)",
  "toml 0.8.8",
+ "tusker-migration",
  "tusker-query-models",
  "users",
 ]
@@ -1329,6 +1340,18 @@ dependencies = [
  "tokio",
  "tokio-postgres 0.7.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "tusker-query",
+]
+
+[[package]]
+name = "tusker-migration"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "sha2",
+ "termcolor",
+ "time",
+ "tokio",
+ "tokio-postgres 0.7.10 (git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id)",
 ]
 
 [[package]]
@@ -1495,6 +1518,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "winapi"
+version = "0.3.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c839a674fcd7a98952e593242ea400abe93992746761e38641405d28b00f419"
+dependencies = [
+ "winapi-i686-pc-windows-gnu",
+ "winapi-x86_64-pc-windows-gnu",
+]
+
+[[package]]
+name = "winapi-i686-pc-windows-gnu"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ac3b87c63620426dd9b991e5ce0329eff545bccbbb34f3be09ff6fb6ab51b7b6"
+
+[[package]]
+name = "winapi-util"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f29e6f9198ba0d26b4c9f07dbe6f9ed633e1f3d5b8b414090084349e46a52596"
+dependencies = [
+ "winapi",
+]
+
+[[package]]
+name = "winapi-x86_64-pc-windows-gnu"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
+
+[[package]]
 name = "windows-sys"
 version = "0.48.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1628,9 +1682,9 @@ checksum = "dff9641d1cd4be8d1a070daf9e3773c5f67e78b4d9d42263020c057706765c04"
 
 [[package]]
 name = "winnow"
-version = "0.5.24"
+version = "0.5.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0383266b19108dfc6314a56047aa545a1b4d1be60e799b4dbdd407b56402704b"
+checksum = "b7e87b8dfbe3baffbe687eef2e164e32286eff31a5ee16463ce03d991643ec94"
 dependencies = [
  "memchr",
 ]
