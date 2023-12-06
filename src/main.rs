@@ -2,7 +2,7 @@ use anyhow::Result;
 use clap::ValueEnum;
 use config::Config;
 
-pub mod commands;
+pub mod cli;
 pub mod config;
 
 #[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
@@ -24,6 +24,6 @@ impl std::fmt::Display for Backend {
 #[tokio::main]
 async fn main() -> Result<()> {
     let cfg = Config::new()?;
-    commands::run(&cfg).await?;
+    cli::run(&cfg).await?;
     Ok(())
 }
