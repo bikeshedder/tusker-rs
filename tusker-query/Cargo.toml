@@ -8,5 +8,5 @@ edition = "2021"
 [dependencies]
 async-trait = "0.1.74"
 deadpool-postgres = "0.11.0"
-tokio-postgres = "0.7.10"
+tokio-postgres = { crate = "tokio-postgres", git = "https://github.com/bikeshedder/rust-postgres", branch = "table_oid_column_id" }
 tusker-query-derive = { version = "0.1.0", path = "../tusker-query-derive" }

@@ -799,6 +799,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
+name = "postgres-derive"
+version = "0.4.5"
+source = "git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id#87876150d79e637767247176e339bf01a8b32d3b"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "postgres-protocol"
 version = "0.6.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -852,7 +863,10 @@ source = "git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_colu
 dependencies = [
  "bytes",
  "fallible-iterator",
+ "postgres-derive",
  "postgres-protocol 0.6.6 (git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id)",
+ "serde",
+ "serde_json",
  "time",
 ]
 
@@ -1316,7 +1330,6 @@ dependencies = [
  "anyhow",
  "clap",
  "config",
- "itertools",
  "serde",
  "serde_json",
  "sha2",
@@ -1325,6 +1338,7 @@ dependencies = [
  "toml 0.8.8",
  "tusker-migration",
  "tusker-query-models",
+ "tusker-schema",
  "users",
 ]
 
@@ -1360,7 +1374,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "deadpool-postgres",
- "tokio-postgres 0.7.10 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tokio-postgres 0.7.10 (git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id)",
  "tusker-query-derive",
 ]
 
@@ -1381,6 +1395,20 @@ dependencies = [
  "hex",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "tusker-schema"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "itertools",
+ "postgres-types 0.2.6 (git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id)",
+ "serde",
+ "thiserror",
+ "tokio-postgres 0.7.10 (git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id)",
+ "tusker-query",
 ]
 
 [[package]]
