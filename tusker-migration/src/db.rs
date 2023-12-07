@@ -10,16 +10,19 @@ use crate::error::Error;
 use crate::file::MigrationFile;
 
 pub struct Database {
-    client: tokio_postgres::Client,
+    pub client: tokio_postgres::Client,
 }
 
 impl Database {
-    pub async fn connect(pg_config: &tokio_postgres::Config) -> Result<Database, PgError> {
-        let (client, connection) = pg_config.connect(tokio_postgres::NoTls).await?;
+    pub async fn connect(pg_config: &tokio_postgres::Config) -> Result<Database, Error> {
+        let (client, connection) = pg_config
+            .connect(tokio_postgres::NoTls)
+            .await
+            .map_err(|e| Error::Pg("Unable to connect to database".into(), e))?;
         tokio::spawn(connection);
         Ok(Database { client })
     }
-    pub async fn migration_table_exists(&mut self) -> Result<bool, PgError> {
+    pub async fn migration_table_exists(&self) -> Result<bool, PgError> {
         let stmt = self
             .client
             .prepare("SELECT to_regclass('migration')::bigint")
@@ -30,11 +33,11 @@ impl Database {
             None => false,
         })
     }
-    pub async fn init(&mut self) -> Result<(), PgError> {
+    pub async fn init(&self) -> Result<(), PgError> {
         let sql = include_str!("init.sql");
         self.client.simple_query(sql).await.map(|_| ())
     }
-    pub async fn get_migrations(&mut self) -> Result<Vec<DbMigration>, PgError> {
+    pub async fn get_migrations(&self) -> Result<Vec<DbMigration>, PgError> {
         let stmt = self
             .client
             .prepare("SELECT number, name, hash FROM \"migration_current\"")
@@ -49,7 +52,7 @@ impl Database {
             })
             .collect())
     }
-    pub async fn get_migration_log(&mut self) -> Result<Vec<DbMigrationLog>, PgError> {
+    pub async fn get_migration_log(&self) -> Result<Vec<DbMigrationLog>, PgError> {
         let stmt = self
             .client
             .prepare("SELECT number, name, timestamp, operation::text FROM \"migration_log\"")
@@ -65,10 +68,7 @@ impl Database {
             })
             .collect())
     }
-    pub async fn update_migration(
-        &mut self,
-        migration_file: &MigrationFile,
-    ) -> Result<(), PgError> {
+    pub async fn update_migration(&self, migration_file: &MigrationFile) -> Result<(), PgError> {
         let sql = "SELECT migration_update($1, $2, $3)";
         self.client
             .execute(
@@ -83,7 +83,7 @@ impl Database {
             .map(|_| ())
     }
     pub async fn apply_migration(
-        &mut self,
+        &self,
         migration_file: &MigrationFile,
         sql: &str,
     ) -> Result<(), PgError> {
@@ -102,7 +102,7 @@ impl Database {
             .await
             .map(|_| ())
     }
-    pub async fn fake_migration(&mut self, migration_file: &MigrationFile) -> Result<(), PgError> {
+    pub async fn fake_migration(&self, migration_file: &MigrationFile) -> Result<(), PgError> {
         let sql = "SELECT migration_fake($1, $2, $3)";
         self.client
             .execute(
@@ -116,7 +116,7 @@ impl Database {
             .await
             .map(|_| ())
     }
-    pub async fn remove_migration(&mut self, number: i32) -> Result<(), PgError> {
+    pub async fn remove_migration(&self, number: i32) -> Result<(), PgError> {
         let sql = "SELECT migration_delete($1)";
         self.client.execute(sql, &[&number]).await.map(|_| ())
     }

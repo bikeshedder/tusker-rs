@@ -19,6 +19,7 @@ pub struct Cli {
 #[derive(Debug, Subcommand)]
 pub enum Commands {
     /// Schema commands (diffing)
+    #[command(alias = "s")]
     Schema(schema::SchemaCommand),
     /// Remove all temporary databases, schemas and tables created by
     /// tusker
@@ -35,6 +36,8 @@ pub enum Commands {
     /// Alias for "schema diff"
     #[command(alias = "d")]
     Diff(schema::diff::DiffArgs),
+    /// Alias for "migration run"
+    Migrate(tusker_migration::cli::RunArgs),
 }
 
 pub async fn run(cfg: &Config) -> Result<()> {
@@ -48,10 +51,13 @@ pub async fn run(cfg: &Config) -> Result<()> {
         }
         Commands::Query(args) => query::cmd(cfg, args).await?,
         Commands::Migration(args) => {
-            tusker_migration::cli::run(&(cfg.database.pg_config()?), args).await?
+            tusker_migration::cli::cmd(&(cfg.database.pg_config()?), args).await?
         }
         Commands::Config(args) => config::cmd(cfg, args).await?,
         Commands::Diff(args) => schema::diff::cmd(cfg, args).await?,
+        Commands::Migrate(args) => {
+            tusker_migration::cli::run(&(cfg.database.pg_config()?), args).await?
+        }
     }
     Ok(())
 }
