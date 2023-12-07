@@ -29,10 +29,15 @@ pub struct DiffArgs {
 
 pub async fn cmd(cfg: &Config, args: &DiffArgs) -> Result<()> {
     let client = cfg.database.connect().await?;
-    let tables = tusker_schema::get_tables(&client).await?;
+    let res = tusker_schema::inspect(&client).await?;
     // FIXME this is work in progress
-    for table in &tables {
-        println!("{}", table.create());
+    for schema in res.values() {
+        for table in schema.tables.values() {
+            println!("{}", table.create());
+        }
+        for view in schema.views.values() {
+            println!("{}", view.create());
+        }
     }
     unimplemented!()
 }

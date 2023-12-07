@@ -4,7 +4,6 @@ SELECT
     cls.relkind AS kind,
     json_agg(
         json_build_object(
-            'num', a.attnum,
             'name', a.attname,
             'type', format_type(a.atttypid, a.atttypmod),
             'notnull', a.attnotnull,
@@ -12,6 +11,7 @@ SELECT
             'generated', a.attgenerated,
             'default', pg_get_expr(a_def.adbin, a_def.adrelid)
         )
+        ORDER BY a.attnum
     ) AS columns,
     pg_get_viewdef(cls.oid) as viewdef
 FROM pg_catalog.pg_class AS cls
