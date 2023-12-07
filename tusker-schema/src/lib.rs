@@ -5,6 +5,7 @@ use models::{schema::Schema, table::Table, view::View};
 use queries::Relkind;
 use tokio_postgres::Client;
 
+pub(crate) mod diff;
 pub mod models;
 pub mod queries;
 pub(crate) mod sql;
