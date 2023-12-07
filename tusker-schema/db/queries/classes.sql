@@ -16,7 +16,6 @@ SELECT
     pg_get_viewdef(cls.oid) as viewdef
 FROM pg_catalog.pg_class AS cls
     JOIN pg_catalog.pg_namespace AS ns ON ns.oid = cls.relnamespace
-    JOIN pg_catalog.pg_type AS t ON t.oid = cls.reltype
     JOIN pg_catalog.pg_attribute a ON a.attrelid = cls.oid AND a.attnum > 0
     JOIN pg_catalog.pg_type a_t ON a_t.oid = a.atttypid
     LEFT JOIN pg_catalog.pg_attrdef AS a_def
