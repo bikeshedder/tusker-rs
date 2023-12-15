@@ -72,12 +72,10 @@ async fn cmd_query_type(cfg: &Config, args: &QueryTypeArgs) -> Result<()> {
     Ok(())
 }
 
-async fn is_nullable(client: &Client, table_id: NonZeroU32, column_id: NonZeroI16) -> Result<bool> {
+async fn is_nullable(client: &Client, table_id: u32, column_id: i16) -> Result<bool> {
     let stmt = client
         .prepare("SELECT attnotnull FROM pg_catalog.pg_attribute WHERE attrelid=$1 AND attnum=$2")
         .await?;
-    let row = client
-        .query_one(&stmt, &[&table_id.get(), &column_id.get()])
-        .await?;
+    let row = client.query_one(&stmt, &[&table_id, &column_id]).await?;
     Ok(row.get(0))
 }

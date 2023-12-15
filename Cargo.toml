@@ -8,13 +8,14 @@ description = "PostgreSQL specific schema migration tool"
 
 [dependencies]
 anyhow = "1.0.75"
+async-trait = "0.1.74"
 clap = { version = "4.4.10", features = ["derive"] }
 config = { version = "0.13.4", default-features = false, features = ["toml"] }
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = "1.0.108"
 sha2 = "0.10.8"
 tokio = { version = "1.34.0", features = ["macros", "rt-multi-thread"] }
-tokio-postgres = { crate = "tokio-postgres", git = "https://github.com/bikeshedder/rust-postgres", branch = "table_oid_column_id" }
+tokio-postgres = { crate = "tokio-postgres", git = "https://github.com/sfackler/rust-postgres", commit = "bbc04145de7a83dfa66cb3cf4a68878da2c1cc32" }
 toml = "0.8.8"
 tusker-migration = { version = "0.1.0", path = "tusker-migration" }
 tusker-query-models = { version = "0.1.0", path = "tusker-query-models" }

@@ -5,8 +5,16 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+with-time-0_3 = ["time_03"]
+with-uuid-1 = ["uuid_1"]
+with-serde_json-1 = ["serde_json_1"]
+
 [dependencies]
 async-trait = "0.1.74"
 deadpool-postgres = "0.11.0"
-tokio-postgres = { crate = "tokio-postgres", git = "https://github.com/bikeshedder/rust-postgres", branch = "table_oid_column_id" }
+time_03 = { package = "time", version = "0.3", optional = true }
+tokio-postgres = { crate = "tokio-postgres", git = "https://github.com/sfackler/rust-postgres", commit = "bbc04145de7a83dfa66cb3cf4a68878da2c1cc32" }
 tusker-query-derive = { version = "0.1.0", path = "../tusker-query-derive" }
+uuid_1 = { package = "uuid", version = "1", optional = true }
+serde_json_1 = { package = "serde_json", version = "1", optional = true }

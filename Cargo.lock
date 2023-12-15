@@ -684,7 +684,7 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 [[package]]
 name = "postgres-derive"
 version = "0.4.5"
-source = "git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id#87876150d79e637767247176e339bf01a8b32d3b"
+source = "git+https://github.com/sfackler/rust-postgres#bbc04145de7a83dfa66cb3cf4a68878da2c1cc32"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -713,7 +713,7 @@ dependencies = [
 [[package]]
 name = "postgres-protocol"
 version = "0.6.6"
-source = "git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id#87876150d79e637767247176e339bf01a8b32d3b"
+source = "git+https://github.com/sfackler/rust-postgres#bbc04145de7a83dfa66cb3cf4a68878da2c1cc32"
 dependencies = [
  "base64",
  "byteorder",
@@ -741,12 +741,12 @@ dependencies = [
 [[package]]
 name = "postgres-types"
 version = "0.2.6"
-source = "git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id#87876150d79e637767247176e339bf01a8b32d3b"
+source = "git+https://github.com/sfackler/rust-postgres#bbc04145de7a83dfa66cb3cf4a68878da2c1cc32"
 dependencies = [
  "bytes",
  "fallible-iterator",
  "postgres-derive",
- "postgres-protocol 0.6.6 (git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id)",
+ "postgres-protocol 0.6.6 (git+https://github.com/sfackler/rust-postgres)",
  "serde",
  "serde_json",
  "time",
@@ -1074,7 +1074,7 @@ dependencies = [
 [[package]]
 name = "tokio-postgres"
 version = "0.7.10"
-source = "git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id#87876150d79e637767247176e339bf01a8b32d3b"
+source = "git+https://github.com/sfackler/rust-postgres#bbc04145de7a83dfa66cb3cf4a68878da2c1cc32"
 dependencies = [
  "async-trait",
  "byteorder",
@@ -1087,8 +1087,8 @@ dependencies = [
  "percent-encoding",
  "phf",
  "pin-project-lite",
- "postgres-protocol 0.6.6 (git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id)",
- "postgres-types 0.2.6 (git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id)",
+ "postgres-protocol 0.6.6 (git+https://github.com/sfackler/rust-postgres)",
+ "postgres-types 0.2.6 (git+https://github.com/sfackler/rust-postgres)",
  "rand",
  "socket2",
  "tokio",
@@ -1189,13 +1189,14 @@ name = "tusker"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "clap",
  "config",
  "serde",
  "serde_json",
  "sha2",
  "tokio",
- "tokio-postgres 0.7.10 (git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id)",
+ "tokio-postgres 0.7.10 (git+https://github.com/sfackler/rust-postgres)",
  "toml 0.8.8",
  "tusker-migration",
  "tusker-query-models",
@@ -1212,7 +1213,7 @@ dependencies = [
  "termcolor",
  "time",
  "tokio",
- "tokio-postgres 0.7.10 (git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id)",
+ "tokio-postgres 0.7.10 (git+https://github.com/sfackler/rust-postgres)",
 ]
 
 [[package]]
@@ -1221,8 +1222,11 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "deadpool-postgres",
- "tokio-postgres 0.7.10 (git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id)",
+ "serde_json",
+ "time",
+ "tokio-postgres 0.7.10 (git+https://github.com/sfackler/rust-postgres)",
  "tusker-query-derive",
+ "uuid",
 ]
 
 [[package]]
@@ -1251,11 +1255,11 @@ dependencies = [
  "anyhow",
  "clap",
  "itertools",
- "postgres-types 0.2.6 (git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id)",
+ "postgres-types 0.2.6 (git+https://github.com/sfackler/rust-postgres)",
  "serde",
  "serde_json",
  "thiserror",
- "tokio-postgres 0.7.10 (git+https://github.com/bikeshedder/rust-postgres?branch=table_oid_column_id)",
+ "tokio-postgres 0.7.10 (git+https://github.com/sfackler/rust-postgres)",
  "tusker-query",
 ]
 
@@ -1300,6 +1304,12 @@ name = "utf8parse"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
+
+[[package]]
+name = "uuid"
+version = "1.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5e395fcf16a7a3d8127ec99782007af141946b4795001f876d54fb0d55978560"
 
 [[package]]
 name = "version_check"
