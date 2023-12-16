@@ -8,7 +8,7 @@ use syn::{Data, DeriveInput};
 struct QueryTraitOpts {
     ident: syn::Ident,
     sql: String,
-    row: syn::Ident,
+    row: Option<syn::Ident>,
 }
 
 #[proc_macro_derive(Query, attributes(query))]
@@ -20,7 +20,10 @@ pub fn derive_query(input: TokenStream) -> TokenStream {
     };
     let name = opts.ident;
     let sql = opts.sql;
-    let row = opts.row;
+    let row = opts
+        .row
+        .map(|ident| quote! { #ident })
+        .unwrap_or(quote! { () });
     let params = s.fields.iter().map(|field| {
         let field_name = field.ident.as_ref().unwrap();
         quote! {

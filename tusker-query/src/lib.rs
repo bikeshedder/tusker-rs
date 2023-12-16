@@ -14,11 +14,9 @@ pub trait FromRow {
 
 pub use tusker_query_derive::FromRow;
 
-pub struct Empty;
-
-impl FromRow for Empty {
+impl FromRow for () {
     fn from_row(_: Row) -> Self {
-        Self
+        ()
     }
 }
 
