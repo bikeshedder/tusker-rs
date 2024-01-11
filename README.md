@@ -1,3 +1,5 @@
+# ⚠️  This project is still work in progress and not in a useable state, yet. Please don't report missing or broken features. ⚠️
+
 # Tusker
 
 PostgreQSL specific migration tool
