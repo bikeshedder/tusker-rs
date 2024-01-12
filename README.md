@@ -2,7 +2,7 @@
 
 # Tusker
 
-PostgreQSL specific migration tool
+PostgreSQL specific migration tool
 
 ## Elevator pitch
 
