@@ -9,7 +9,7 @@ use tusker_query::{FromRow, Query};
 use crate::models::column::Column;
 
 #[derive(Query)]
-#[query(sql = "classes.sql", row = Class)]
+#[query(sql="classes", row=Class)]
 pub struct Classes {}
 
 #[derive(FromRow)]

@@ -2,7 +2,9 @@ use tokio_postgres::{types::ToSql, GenericClient, Row};
 
 pub use tusker_query_derive::Query;
 
-pub trait Query {
+pub mod types;
+
+pub trait Query: Sized {
     const SQL: &'static str;
     type Row: FromRow;
     fn as_params(&self) -> Box<[&(dyn ToSql + Sync)]>;
@@ -15,9 +17,7 @@ pub trait FromRow {
 pub use tusker_query_derive::FromRow;
 
 impl FromRow for () {
-    fn from_row(_: Row) -> Self {
-        ()
-    }
+    fn from_row(_: Row) -> Self {}
 }
 
 pub async fn query_one<Q: Query>(

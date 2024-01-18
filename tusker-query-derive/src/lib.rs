@@ -8,7 +8,7 @@ use syn::{Data, DeriveInput};
 struct QueryTraitOpts {
     ident: syn::Ident,
     sql: String,
-    row: Option<syn::Ident>,
+    row: syn::Ident,
 }
 
 #[proc_macro_derive(Query, attributes(query))]
@@ -19,11 +19,8 @@ pub fn derive_query(input: TokenStream) -> TokenStream {
         unreachable!();
     };
     let name = opts.ident;
-    let sql = opts.sql;
-    let row = opts
-        .row
-        .map(|ident| quote! { #ident })
-        .unwrap_or(quote! { () });
+    let sql_path = opts.sql;
+    let row = opts.row;
     let params = s.fields.iter().map(|field| {
         let field_name = field.ident.as_ref().unwrap();
         quote! {
@@ -35,7 +32,8 @@ pub fn derive_query(input: TokenStream) -> TokenStream {
             const SQL: &'static str = include_str!(concat!(
                 env!("CARGO_MANIFEST_DIR"),
                 "/db/queries/",
-                #sql
+                #sql_path,
+                ".sql"
             ));
             type Row = #row;
             fn as_params(&self) -> Box<[&(dyn ::tokio_postgres::types::ToSql + Sync)]> {

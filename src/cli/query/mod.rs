@@ -53,11 +53,17 @@ async fn cmd_query_type(cfg: &Config, args: &QueryTypeArgs) -> Result<()> {
         columns.push(Column {
             name: c.name().to_owned(),
             r#type: c.type_().to_string(),
+            notnull: None,
+            // The following code depends on a tokio-postgres version which
+            // hasn't been released, yet:
+            // https://github.com/sfackler/rust-postgres/pull/1084
+            /*
             notnull: if let (Some(table_oid), Some(column_id)) = (c.table_oid(), c.column_id()) {
                 Some(is_nullable(&client, table_oid, column_id).await?)
             } else {
                 None
             },
+            */
         })
     }
 
