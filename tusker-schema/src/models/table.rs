@@ -2,6 +2,7 @@ use itertools::Itertools;
 use thiserror::Error;
 
 use crate::{
+    diff::{diff, Diff},
     queries::{Class, Relkind},
     sql::quote_ident,
 };
@@ -41,5 +42,8 @@ impl Table {
             quote_ident(&self.name),
             cols
         )
+    }
+    pub fn diff_columns<'a>(&'a self, other: &'a Self) -> Diff<'a, Column> {
+        diff(self.columns.iter(), other.columns.iter(), |c| &c.name)
     }
 }
