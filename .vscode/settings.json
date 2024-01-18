@@ -16,5 +16,6 @@
         "language": "sql",
         "linesBetweenQueries": 2,
         "reservedWordCase": "upper"
-    }
+    },
+    "rust-analyzer.cargo.features": "all"
 }
