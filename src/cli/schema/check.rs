@@ -1,7 +1,9 @@
 use anyhow::Result;
 use clap::Parser;
 
-use crate::{config::Config, Backend};
+use crate::config::Config;
+
+use super::Backend;
 
 #[derive(Debug, Parser)]
 pub struct CheckArgs {

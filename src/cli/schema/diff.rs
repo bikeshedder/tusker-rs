@@ -1,7 +1,9 @@
 use anyhow::Result;
 use clap::Parser;
 
-use crate::{config::Config, Backend};
+use crate::config::Config;
+
+use super::Backend;
 
 #[derive(Debug, Parser)]
 pub struct DiffArgs {
@@ -30,6 +32,8 @@ pub struct DiffArgs {
 pub async fn cmd(cfg: &Config, args: &DiffArgs) -> Result<()> {
     let client = cfg.database.connect().await?;
     let res = tusker_schema::inspect(&client).await?;
+    // Prepare from backend
+
     // FIXME this is work in progress
     for schema in res.values() {
         for table in schema.tables.values() {

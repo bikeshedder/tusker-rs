@@ -1,5 +1,5 @@
 use anyhow::Result;
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 
 use crate::config::Config;
 
@@ -38,4 +38,20 @@ pub async fn cmd(cfg: &Config, args: &SchemaCommand) -> Result<()> {
         SchemaSubcommand::Check(cmd_args) => check::cmd(cfg, cmd_args).await?,
     }
     Ok(())
+}
+
+#[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
+enum Backend {
+    Migrations,
+    Schema,
+    Database,
+}
+
+impl std::fmt::Display for Backend {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.to_possible_value()
+            .expect("no values are skipped")
+            .get_name()
+            .fmt(f)
+    }
 }
