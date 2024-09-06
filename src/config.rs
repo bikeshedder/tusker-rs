@@ -139,7 +139,7 @@ pub struct SchemaConfig {
 }
 
 fn default_schema_filename() -> String {
-    "db/schema/*.sql".into()
+    "db/schema/**/*.sql".into()
 }
 
 impl Default for SchemaConfig {
@@ -157,7 +157,7 @@ pub struct MigrationsConfig {
 }
 
 fn default_migrations_filename() -> String {
-    "db/migrations/*.sql".into()
+    "db/migrations/**/*.sql".into()
 }
 
 impl Default for MigrationsConfig {
@@ -175,7 +175,7 @@ pub struct QueriesConfig {
 }
 
 fn default_queries_filename() -> String {
-    "db/queries/*.sql".into()
+    "db/queries/**/*.sql".into()
 }
 
 impl Default for QueriesConfig {
