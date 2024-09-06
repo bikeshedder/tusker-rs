@@ -36,6 +36,9 @@ pub enum Commands {
     /// Alias for "schema diff"
     #[command(alias = "d")]
     Diff(schema::diff::DiffArgs),
+    /// Alias for "schema check"
+    #[command(alias = "chk")]
+    Check(schema::check::CheckArgs),
     /// Alias for "migration run"
     Migrate(tusker_migration::cli::RunArgs),
 }
@@ -55,6 +58,7 @@ pub async fn run(cfg: &Config) -> Result<()> {
         }
         Commands::Config(args) => config::cmd(cfg, args).await?,
         Commands::Diff(args) => schema::diff::cmd(cfg, args).await?,
+        Commands::Check(args) => schema::check::cmd(cfg, args).await?,
         Commands::Migrate(args) => {
             tusker_migration::cli::run(&(cfg.database.pg_config()?), args).await?
         }
