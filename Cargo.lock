@@ -1476,7 +1476,6 @@ name = "tusker"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "async-trait",
  "clap",
  "config",
  "glob",
@@ -1522,7 +1521,6 @@ dependencies = [
 name = "tusker-query"
 version = "0.1.0"
 dependencies = [
- "postgres-types",
  "serde_json",
  "time",
  "tokio-postgres",
@@ -1535,9 +1533,7 @@ name = "tusker-query-derive"
 version = "0.1.0"
 dependencies = [
  "darling",
- "postgres-types",
  "quote",
- "serde_json",
  "syn",
 ]
 
@@ -1547,7 +1543,6 @@ version = "0.1.0"
 dependencies = [
  "hex",
  "serde",
- "serde_json",
 ]
 
 [[package]]
