@@ -6,13 +6,24 @@ use thiserror::Error;
 use tokio_postgres::types::Json;
 use tusker_query::{FromRow, Query};
 
-use crate::models::column::Column;
+use crate::models::{column::Column, constraint::ConstraintType};
+
+#[derive(Query)]
+#[query(sql="schemas", row=Schema)]
+pub struct Schemas {}
+
+#[derive(Debug, FromRow)]
+pub struct Schema {
+    pub name: String,
+}
 
 #[derive(Query)]
 #[query(sql="classes", row=Class)]
-pub struct Classes {}
+pub struct Classes {
+    pub schema: String,
+}
 
-#[derive(FromRow)]
+#[derive(Debug, FromRow)]
 pub struct Class {
     pub schema: String,
     pub name: String,
@@ -21,7 +32,7 @@ pub struct Class {
     pub viewdef: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Relkind {
     #[serde(rename = "r")]
     OrdinaryTable,
@@ -77,3 +88,17 @@ impl FromSql<'_> for Relkind {
 #[derive(Error, Debug)]
 #[error("Unsupported relkind value")]
 struct UnsupportedRelkind(Vec<u8>);
+
+#[derive(Query)]
+#[query(sql="constraints", row=Constraint)]
+pub struct Constraints {
+    pub schema: String,
+}
+
+#[derive(Debug, FromRow)]
+pub struct Constraint {
+    pub table: String,
+    pub name: String,
+    pub r#type: ConstraintType,
+    pub def: String,
+}

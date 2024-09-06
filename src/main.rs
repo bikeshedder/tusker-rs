@@ -1,9 +1,9 @@
 use anyhow::Result;
-use clap::ValueEnum;
 use config::Config;
 
 pub mod cli;
 pub mod config;
+pub mod db;
 
 #[tokio::main]
 async fn main() -> Result<()> {

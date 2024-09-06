@@ -5,7 +5,7 @@ use crate::{
     sql::quote_ident,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct View {
     pub schema: String,
     pub name: String,
@@ -17,7 +17,7 @@ pub struct View {
 impl View {
     pub fn create(&self) -> String {
         format!(
-            "CREATE OR REPLACE {}VIEW {}.{} AS\n{}",
+            "CREATE OR REPLACE {}VIEW {}.{} AS\n{};\n",
             if self.materialized {
                 "MATERIALIZED "
             } else {

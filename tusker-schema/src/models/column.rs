@@ -1,8 +1,11 @@
 use serde::Deserialize;
 
-use crate::sql::StatementBuilder;
+use crate::{
+    diff::{ChangeType, Diff, DiffSql},
+    sql::StatementBuilder,
+};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Deserialize)]
 pub struct Column {
     pub name: String,
     pub r#type: String,
@@ -50,9 +53,18 @@ impl Column {
         }
         s.to_string()
     }
+    pub fn create_sql(&self) -> String {
+        format!("ADD COLUMN {}", self.sql())
+    }
+    pub fn alter_sql(&self) -> String {
+        format!("ALTER COLUMN {}", self.sql())
+    }
+    pub fn drop_sql(&self) -> String {
+        format!("DROP COLUMN {}", self.name)
+    }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Deserialize)]
 pub enum Generated {
     #[serde(rename = "")]
     No,
@@ -60,7 +72,7 @@ pub enum Generated {
     Stored,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Deserialize)]
 pub enum Identity {
     #[serde(rename = "")]
     No,
@@ -68,4 +80,22 @@ pub enum Identity {
     Always,
     #[serde(rename = "d")]
     Default,
+}
+
+impl<'a> DiffSql for Diff<'a, Column> {
+    fn sql(&self) -> Vec<(ChangeType, String)> {
+        let mut v = Vec::new();
+        for a in &self.a_only {
+            v.push((ChangeType::DropColumn, a.drop_sql()));
+        }
+        for (a, b) in &self.a_and_b {
+            if a != b {
+                v.push((ChangeType::AlterColumn, b.alter_sql()));
+            }
+        }
+        for b in &self.b_only {
+            v.push((ChangeType::CreateColumn, b.create_sql()));
+        }
+        v
+    }
 }

@@ -20,7 +20,7 @@ pub struct Config {
     pub queries: QueriesConfig,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct DatabaseConfig {
     pub url: Option<String>,
@@ -28,7 +28,7 @@ pub struct DatabaseConfig {
     pub port: Option<u16>,
     pub user: Option<String>,
     pub password: Option<String>,
-    pub dbname: Option<String>,
+    pub dbname: String,
 }
 
 impl Config {
@@ -45,7 +45,7 @@ impl Config {
             database: DatabaseConfig {
                 url: Some("".into()),
                 host: Some("".into()),
-                dbname: Some("".into()),
+                dbname: "".into(),
                 password: Some("".into()),
                 port: Some(5432),
                 user: Some("".into()),
@@ -97,9 +97,7 @@ impl DatabaseConfig {
         if let Some(password) = &self.password {
             cfg.password(password);
         }
-        if let Some(dbname) = &self.dbname {
-            cfg.dbname(dbname);
-        }
+        cfg.dbname(&self.dbname);
         Ok(cfg)
     }
     pub async fn connect(&self) -> Result<PgClient> {

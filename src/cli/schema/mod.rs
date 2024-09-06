@@ -41,7 +41,7 @@ pub async fn cmd(cfg: &Config, args: &SchemaCommand) -> Result<()> {
 }
 
 #[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
-enum Backend {
+pub enum Backend {
     Migrations,
     Schema,
     Database,

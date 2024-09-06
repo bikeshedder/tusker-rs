@@ -20,7 +20,5 @@ FROM pg_catalog.pg_class AS cls
     JOIN pg_catalog.pg_type a_t ON a_t.oid = a.atttypid
     LEFT JOIN pg_catalog.pg_attrdef AS a_def
         ON a_def.adrelid = cls.oid AND a_def.adnum = a.attnum
-WHERE ns.nspname NOT IN ('pg_catalog', 'information_schema', 'pg_toast')
-    AND ns.nspname  NOT LIKE 'pg_temp_%'
-    AND ns.nspname  NOT LIKE 'pg_toast_temp_%'
-GROUP BY ns.nspname, cls.relname, cls.relkind, cls.oid
+WHERE ns.nspname = $1
+GROUP BY ns.nspname, cls.relname, cls.relkind, cls.oid;
