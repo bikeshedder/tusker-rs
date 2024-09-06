@@ -139,10 +139,10 @@ configuration looks like that:
 dbname = "tusker"
 
 [schema]
-filename = "db/schema/*.sql"
+filename = "db/schema/**/*.sql"
 
 [migrations]
-filename = "db/migrations/*.sql"
+filename = "db/migrations/**/*.sql"
 
 [diff]
 safe = false
@@ -196,26 +196,12 @@ file.
 
 ### Is it possible to split the schema into multiple files?
 
-Yes. This feature has been added in 0.3. You can now use `glob` patterns as
-part of the `schema.filename` setting. e.g.:
-
-```toml
-[schema]
-filename = "schema/*.sql"
-```
-
-As of 0.4.5 recursive glob patterns are supported as well:
-
-```toml
-[schema]
-filename = "schema/**/*.sql"
-```
+Yes. The `schema.filename` is an actual `glob` pattern and defaults to `db/schema/**/*.sql`.
 
 ### Is it possible to diff the schema and/or migrations against an existing database?
 
-Yes. This feature has been added in 0.2. You can pass a `from` and `to`
-argument to the `tusker diff` command. Check the output of `tusker diff --help` for
-more details.
+Yes. You can pass a `from` and `to` argument to the `tusker diff` command.
+Check the output of `tusker diff --help` for more details.
 
 ### Tusker printed an error and left the temporary databases behind. How can I remove them?
 
@@ -245,12 +231,6 @@ being schema diffing. It relies on [migra] and [schemainspect] to perform the
 actual diffing. This version of Tusker implements the diffing
 from scratch and also provides a type safe query system.
 
-Other noteworthy changes are:
-
-- Default `schema.filename` is `db/schema/*.sql`
-- Default `migrations.filename` is `db/migrations/*.sql`
-- Only one temporary database used to perform the diffing instead of two
-
 [pypi-tusker]: https://github.com/olivierlacan/keep-a-changelog/releases/tag/v0.0.1
 [migra]: https://pypi.org/project/migra/
 [schemainspect]: https://pypi.org/project/schemainspect/
@@ -263,7 +243,14 @@ $ cargo install tusker
 ```
 
 The `migra` configuration directive was renamed to `diff`. Just rename `[migra]`
-in your config file to `[diff]`, if you got one, and you should be all set.
+in your config file to `[diff]`, if you got one.
+
+The default values for `schema.filename` and `migrations.filename` were changed.
+If you need the old behavior add this to the `tusker.toml` config file:
+
+```toml
+
+```
 
 ## License
 
