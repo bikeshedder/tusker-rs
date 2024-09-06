@@ -1,9 +1,11 @@
-use anyhow::Result;
+use std::process::{exit, ExitCode};
+
+use anyhow::{anyhow, Result};
 use clap::Parser;
 
-use crate::config::Config;
+use crate::{config::Config, db::DiffDatabase};
 
-use super::Backend;
+use super::{diff::inspect_backend, Backend};
 
 #[derive(Debug, Parser)]
 pub struct CheckArgs {
@@ -25,5 +27,17 @@ pub struct CheckArgs {
 }
 
 pub async fn cmd(cfg: &Config, args: &CheckArgs) -> Result<()> {
-    unimplemented!()
+    let mut db = DiffDatabase::new(&cfg.database).await?;
+    db.create().await?;
+    let from = inspect_backend(cfg, &mut db, args.from).await?;
+    let to = inspect_backend(cfg, &mut db, args.to).await?;
+    db.drop().await?;
+    if from == to {
+        println!("Schemas are identical");
+        Ok(())
+    } else {
+        println!("Schemas differ: {} != {}", args.from, args.to);
+        println!("Run `tusker diff` to see the differences");
+        exit(1);
+    }
 }
