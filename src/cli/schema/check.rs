@@ -1,6 +1,6 @@
-use std::process::{exit, ExitCode};
+use std::process::exit;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use clap::Parser;
 
 use crate::{config::Config, db::DiffDatabase};

@@ -46,7 +46,7 @@ async fn inspect_sql(db: &DiffDatabase, filename: &str) -> Result<Inspection> {
         // FIXME error handling
         txn.simple_query(&sql).await?;
     }
-    let inspection = tusker_schema::inspect(&txn.client()).await?;
+    let inspection = tusker_schema::inspect(txn.client()).await?;
     txn.rollback().await?;
     Ok(inspection)
 }
@@ -62,8 +62,8 @@ pub async fn inspect_backend(
     backend: Backend,
 ) -> Result<Inspection> {
     match backend {
-        Backend::Migrations => inspect_sql(&db, &cfg.migrations.filename).await,
-        Backend::Schema => inspect_sql(&db, &cfg.schema.filename).await,
+        Backend::Migrations => inspect_sql(db, &cfg.migrations.filename).await,
+        Backend::Schema => inspect_sql(db, &cfg.schema.filename).await,
         Backend::Database => inspect_db(&cfg.database).await,
     }
 }

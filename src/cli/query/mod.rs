@@ -1,8 +1,4 @@
-use std::{
-    ffi::OsString,
-    fs,
-    num::{NonZeroI16, NonZeroU32},
-};
+use std::{ffi::OsString, fs};
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
