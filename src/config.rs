@@ -3,7 +3,7 @@ use std::str::FromStr;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use tokio_postgres::{Client as PgClient, Config as PgConfig, NoTls};
-use users::get_current_username;
+use uzers::get_current_username;
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

@@ -21,7 +21,7 @@ toml = "0.8.8"
 tusker-migration = { version = "0.1.0", path = "tusker-migration" }
 tusker-query-models = { version = "0.1.0", path = "tusker-query-models" }
 tusker-schema = { version = "0.1.0", path = "tusker-schema" }
-users = { version = "0.11.0", default-features = false }
+uzers = "0.12.1"
 
 [workspace]
 members = ["tusker-*", "examples/*"]
