@@ -55,9 +55,27 @@ impl DiffDatabase {
         .await
     }
     pub async fn drop(&self) -> Result<()> {
+        self.drop_dbname(&self.dbname).await
+    }
+    pub async fn drop_dbname(&self, dbname: &str) -> Result<()> {
         self.client
-            .execute(&format!("DROP DATABASE {}", &self.dbname), &[])
+            .execute(&format!("DROP DATABASE {}", dbname), &[])
             .await?;
         Ok(())
+    }
+    pub async fn leftover_database(&self) -> Result<Vec<String>> {
+        let rows = self
+            .client
+            .query(
+                concat!(
+                    "SELECT db.datname ",
+                    "FROM pg_database db ",
+                    "JOIN pg_shdescription dsc ON dsc.objoid = db.oid ",
+                    "WHERE dsc.description = $1;"
+                ),
+                &[&TUSKER_COMMENT],
+            )
+            .await?;
+        Ok(rows.iter().map(|row| row.get::<_, String>(0)).collect())
     }
 }
