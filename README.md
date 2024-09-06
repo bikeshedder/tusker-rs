@@ -15,20 +15,19 @@ Tusker does exactly this.
 ## Progress
 
 This project aims to replace the [Python version of Tusker][pypi-tusker] with
-a complete rewrite in Rust. This project is in a very early stage and not ready
-to be used.
+a complete rewrite in Rust. This project is in a very early stage.
 
 - [ ] Diffing
   - [ ] collations
-  - [ ] constraints
+  - [x] constraints
   - [ ] deps
   - [ ] domains
   - [ ] enums
   - [ ] extensions
   - [ ] functions
-  - [ ] indexes
+  - [x] indexes
   - [ ] privileges
-  - [ ] relations
+  - [x] relations
   - [ ] rlspolicies
   - [ ] schemas
   - [ ] sequences
@@ -50,9 +49,9 @@ tusker --help
 ## Getting started
 
 > ⚠️ **WARNING**  
-> Diffing is not working, yet. This documentation is merely a placeholder for how things are supposed to work in the future.
+> Diffing is in its very early stages. This documentation is merely a placeholder for how things are supposed to work in the future.
 
-Once tusker is installed create a new file called `schema.sql`:
+Once tusker is installed create a new file called `db/schema/fruit.sql`:
 
 ```sql
 CREATE TABLE fruit (
@@ -61,10 +60,10 @@ CREATE TABLE fruit (
 );
 ```
 
-You probably want to create an empty `migrations` directory, too:
+You probably want to create an empty `db/migrations` directory, too:
 
 ```shell
-mkdir migrations
+mkdir -p db/migrations
 ```
 
 Now you should be able to create your first migration:
@@ -79,7 +78,7 @@ Alternatively you can also pipe the output of `tusker diff` into the
 target file:
 
 ```
-tusker diff > migrations/0001_initial.sql
+tusker diff > db/migrations/0001_initial.sql
 ```
 
 After that check that your `schema.sql` and your `migrations` are in sync:
@@ -140,10 +139,10 @@ configuration looks like that:
 dbname = "tusker"
 
 [schema]
-filename = "schema.sql"
+filename = "db/schema/*.sql"
 
 [migrations]
-filename = "migrations/*.sql"
+filename = "db/migrations/*.sql"
 
 [diff]
 safe = false
@@ -234,18 +233,23 @@ the target schema:
 tusker diff database
 ```
 
-Tusker also needs to create temporary databases when diffing against the `schema`
-and/or `migrations`. The two databases are called `{dbname}_{timestamp}_schema`
-and `{dbname}_{timestamp}_migrations`.
+Tusker also needs to create a temporary databases when diffing against the
+`schema` and/or `migrations`. The database is called `{dbname}_diff_schema`.
 
 ## FAQ
 
-### How does it differ from the Tusker at PyPI?
+### How does it differ from Tusker at PyPI?
 
 [Tusker was originally written in Python][pypi-tusker] with the only feature
-being schema diffing. It relied solely on [migra] and [schemainspect] to
-perform the actual diffing. This version of Tusker implements the diffing
+being schema diffing. It relies on [migra] and [schemainspect] to perform the
+actual diffing. This version of Tusker implements the diffing
 from scratch and also provides a type safe query system.
+
+Other noteworthy changes are:
+
+- Default `schema.filename` is `db/schema/*.sql`
+- Default `migrations.filename` is `db/migrations/*.sql`
+- Only one temporary database used to perform the diffing instead of two
 
 [pypi-tusker]: https://github.com/olivierlacan/keep-a-changelog/releases/tag/v0.0.1
 [migra]: https://pypi.org/project/migra/
