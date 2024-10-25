@@ -31,10 +31,10 @@ jobs:
           --health-retries 5
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose --all-features --workspace
-    - name: Run tests
-      run: cargo test --verbose --all-features --workspace
-      env:
-        PG_URL: host=127.0.0.1 port=5432 user=tusker password=tusker dbname=tusker"
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --verbose --all-features --workspace
+      - name: Run tests
+        run: cargo test --verbose --all-features --workspace
+        env:
+          PG_URL: host=127.0.0.1 port=5432 user=tusker password=tusker dbname=tusker
