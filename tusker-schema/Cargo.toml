@@ -19,5 +19,5 @@ tusker-query = { version = "0.1.0", path = "../tusker-query" }
 thiserror = "1.0.50"
 
 [dev-dependencies]
-rstest = "0.22.0"
+rstest = "0.23.0"
 tokio = { version = "1.38.0", features = ["fs", "macros", "rt-multi-thread"] }
