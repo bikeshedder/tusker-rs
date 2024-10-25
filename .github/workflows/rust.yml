@@ -16,8 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: cargo +nightly update -Z minimal-versions
+      - run: rustup update nightly
       - run: rustup update 1.75 && rustup default 1.75
+      - run: cargo +nightly update -Z minimal-versions
       - run: cargo check --all-features
 
   test:
