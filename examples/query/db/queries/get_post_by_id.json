@@ -1,0 +1,33 @@
+{
+  "checksum": "8b74810351da493a9591c8cabc5a0550fb196bd3a94b64b563a7ce91fe1e68008e3f484aa1d8736f13b09e103da0dfe6cc26916aba97556232bbf5cde0ec6293",
+  "params": [
+    "int4"
+  ],
+  "columns": [
+    {
+      "name": "id",
+      "type": "int4",
+      "notnull": true
+    },
+    {
+      "name": "author",
+      "type": "varchar",
+      "notnull": true
+    },
+    {
+      "name": "text",
+      "type": "text",
+      "notnull": true
+    },
+    {
+      "name": "created",
+      "type": "timestamptz",
+      "notnull": true
+    },
+    {
+      "name": "deleted",
+      "type": "timestamptz",
+      "notnull": false
+    }
+  ]
+}
