@@ -1,3 +1,4 @@
+use std::env;
 use std::path::PathBuf;
 
 use anyhow::Result;
@@ -7,8 +8,8 @@ use tokio_postgres::{Client, NoTls};
 use tusker_schema::{diff::DiffSql, inspect, models::schema::join_sql, Inspection};
 
 async fn connect() -> Result<tokio_postgres::Client, tokio_postgres::Error> {
-    let (client, connection) =
-        tokio_postgres::connect("host=/run/postgresql dbname=tusker", NoTls).await?;
+    let url = env::var("PG_URL").unwrap_or("host=/run/postgresql dbname=tusker".into());
+    let (client, connection) = tokio_postgres::connect(&url, NoTls).await?;
     tokio::spawn(connection);
     Ok(client)
 }
