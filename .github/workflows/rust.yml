@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: rustup update nightly
-      - run: rustup update 1.75 && rustup default 1.75
+      - run: rustup update 1.85 && rustup default 1.85
       - run: cargo +nightly update -Z minimal-versions
       - run: cargo check --all-features
 
