@@ -8,7 +8,7 @@ use tokio_postgres::{Client, NoTls};
 use tusker_schema::{diff::DiffSql, inspect, models::schema::join_sql, Inspection};
 
 async fn connect() -> Result<tokio_postgres::Client, tokio_postgres::Error> {
-    let url = env::var("PG_URL").unwrap_or("host=/run/postgresql dbname=tusker".into());
+    let url = env::var("PG_URL").expect("Missing environment variable: PG_URL");
     let (client, connection) = tokio_postgres::connect(&url, NoTls).await?;
     tokio::spawn(connection);
     Ok(client)
