@@ -38,21 +38,21 @@ pub struct PgUuid;
 /// JSON, JSONB
 pub struct PgJson;
 
-impl<'a> FromSqlTyped<'a, PgBool> for bool {}
-impl<'a> FromSqlTyped<'a, PgI8> for i8 {}
-impl<'a> FromSqlTyped<'a, PgI16> for i16 {}
-impl<'a> FromSqlTyped<'a, PgI32> for i32 {}
-impl<'a> FromSqlTyped<'a, PgI64> for i64 {}
-impl<'a> FromSqlTyped<'a, PgF32> for f32 {}
-impl<'a> FromSqlTyped<'a, PgF64> for f64 {}
+impl FromSqlTyped<'_, PgBool> for bool {}
+impl FromSqlTyped<'_, PgI8> for i8 {}
+impl FromSqlTyped<'_, PgI16> for i16 {}
+impl FromSqlTyped<'_, PgI32> for i32 {}
+impl FromSqlTyped<'_, PgI64> for i64 {}
+impl FromSqlTyped<'_, PgF32> for f32 {}
+impl FromSqlTyped<'_, PgF64> for f64 {}
 impl<'a> FromSqlTyped<'a, PgString> for &'a str {}
-impl<'a> FromSqlTyped<'a, PgString> for String {}
+impl FromSqlTyped<'_, PgString> for String {}
 impl<'a> FromSqlTyped<'a, PgBytea> for &'a [u8] {}
-impl<'a> FromSqlTyped<'a, PgBytea> for Vec<u8> {}
-impl<'a> FromSqlTyped<'a, PgHstore> for HashMap<String, Option<String>> {}
-impl<'a> FromSqlTyped<'a, PgTimestamp> for SystemTime {}
-impl<'a> FromSqlTyped<'a, PgTimestampTz> for SystemTime {}
-impl<'a> FromSqlTyped<'a, PgInet> for IpAddr {}
+impl FromSqlTyped<'_, PgBytea> for Vec<u8> {}
+impl FromSqlTyped<'_, PgHstore> for HashMap<String, Option<String>> {}
+impl FromSqlTyped<'_, PgTimestamp> for SystemTime {}
+impl FromSqlTyped<'_, PgTimestampTz> for SystemTime {}
+impl FromSqlTyped<'_, PgInet> for IpAddr {}
 
 #[cfg(feature = "with-time-0_3")]
 impl<'a> FromSqlTyped<'a, PgTimestamp> for time_03::PrimitiveDateTime {}

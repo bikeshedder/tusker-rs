@@ -64,7 +64,7 @@ impl Table {
     }
 }
 
-impl<'a> DiffSql for Diff<'a, Table> {
+impl DiffSql for Diff<'_, Table> {
     fn sql(&self) -> Vec<(ChangeType, String)> {
         let mut v = Vec::new();
         for a in &self.a_only {

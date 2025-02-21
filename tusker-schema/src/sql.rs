@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Debug, Default)]
 pub struct StatementBuilder {
     parts: Vec<String>,
@@ -15,9 +17,9 @@ impl StatementBuilder {
     }
 }
 
-impl ToString for StatementBuilder {
-    fn to_string(&self) -> String {
-        self.parts.join(" ")
+impl fmt::Display for StatementBuilder {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.parts.join(" "))
     }
 }
 

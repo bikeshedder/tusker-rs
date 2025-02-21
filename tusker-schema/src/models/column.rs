@@ -82,7 +82,7 @@ pub enum Identity {
     Default,
 }
 
-impl<'a> DiffSql for Diff<'a, Column> {
+impl DiffSql for Diff<'_, Column> {
     fn sql(&self) -> Vec<(ChangeType, String)> {
         let mut v = Vec::new();
         for a in &self.a_only {

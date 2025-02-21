@@ -71,7 +71,7 @@ impl<'a> FromSql<'a> for ConstraintType {
     }
 }
 
-impl<'a> DiffSql for Diff<'a, Constraint> {
+impl DiffSql for Diff<'_, Constraint> {
     fn sql(&self) -> Vec<(ChangeType, String)> {
         let mut v = Vec::new();
         for a in &self.a_only {

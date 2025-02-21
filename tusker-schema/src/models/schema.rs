@@ -21,19 +21,19 @@ impl Schema {
             ..Default::default()
         }
     }
-    pub fn diff_tables<'a>(&'a self, other: &'a Self) -> Diff<'_, Table> {
+    pub fn diff_tables<'a>(&'a self, other: &'a Self) -> Diff<'a, Table> {
         diff(self.tables.values(), other.tables.values(), |table| {
             &table.name
         })
     }
-    pub fn diff_constraints<'a>(&'a self, other: &'a Self) -> Diff<'_, Constraint> {
+    pub fn diff_constraints<'a>(&'a self, other: &'a Self) -> Diff<'a, Constraint> {
         diff(self.constraints.values(), other.constraints.values(), |c| {
             (&c.table, &c.name)
         })
     }
 }
 
-impl<'a> DiffSql for Diff<'a, Schema> {
+impl DiffSql for Diff<'_, Schema> {
     fn sql(&self) -> Vec<(ChangeType, String)> {
         let mut v = Vec::new();
         if !self.a_only.is_empty() {
