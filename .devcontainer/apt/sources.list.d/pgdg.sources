@@ -1,0 +1,6 @@
+Types: deb
+URIs: https://apt.postgresql.org/pub/repos/apt
+Signed-By: /etc/apt/keyrings/pgdg.asc
+Suites: noble-pgdg
+Components: main
+Enabled: yes
