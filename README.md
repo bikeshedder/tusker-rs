@@ -22,7 +22,7 @@ a complete rewrite in Rust. This project is in a very early stage.
   - [x] constraints
   - [ ] deps
   - [ ] domains
-  - [ ] enums
+  - [x] enums (safe additive changes only)
   - [ ] extensions
   - [x] functions (only normal functions)
   - [x] indexes

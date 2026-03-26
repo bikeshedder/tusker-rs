@@ -116,3 +116,16 @@ pub struct FunctionRow {
     pub identity_arguments: String,
     pub definition: String,
 }
+
+#[derive(Query)]
+#[query(sql = "enums", row = EnumRow)]
+pub struct Enums {
+    pub schema: String,
+}
+
+#[derive(Debug, FromRow)]
+pub struct EnumRow {
+    pub schema: String,
+    pub name: String,
+    pub labels: Vec<String>,
+}
