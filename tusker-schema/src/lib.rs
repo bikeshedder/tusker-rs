@@ -4,7 +4,7 @@ use anyhow::Result;
 use diff::{diff, Diff};
 use models::{
     constraint::Constraint, r#enum::Enum, routine::Routine, schema::Schema, sequence::Sequence,
-    table::Table, view::View,
+    table::Table, trigger::Trigger, view::View,
 };
 use queries::Relkind;
 use tokio_postgres::Client;
@@ -138,6 +138,20 @@ pub async fn inspect(client: &Client) -> Result<Inspection> {
                 ),
                 routine,
             );
+        }
+        // Triggers
+        let rows = tusker_query::query(
+            client,
+            queries::Triggers {
+                schema: schema.name.clone(),
+            },
+        )
+        .await?;
+        for row in rows {
+            let trigger = Trigger::from(row);
+            schema
+                .triggers
+                .insert((trigger.table_name.clone(), trigger.name.clone()), trigger);
         }
         schemas.insert(schema.name.clone(), schema);
     }

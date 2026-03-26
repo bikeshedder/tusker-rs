@@ -45,6 +45,7 @@ pub enum ChangeType {
     // order.
     DropConstraint(Reverse<ConstraintType>),
     DropColumn,
+    DropTrigger,
     DropRoutine,
     DropSequence,
     DropTable,
@@ -60,6 +61,7 @@ pub enum ChangeType {
     CreateColumn,
     CreateRoutine,
     CreateConstraint(ConstraintType),
+    CreateTrigger,
 }
 
 pub trait DiffSql {

@@ -179,3 +179,18 @@ pub struct SequenceRow {
     pub cycle: bool,
     pub cache_size: i64,
 }
+
+#[derive(Query)]
+#[query(sql = "triggers", row = TriggerRow)]
+pub struct Triggers {
+    pub schema: String,
+}
+
+#[derive(Debug, FromRow)]
+pub struct TriggerRow {
+    pub schema: String,
+    pub table_name: String,
+    pub name: String,
+    pub definition: String,
+    pub enabled: String,
+}

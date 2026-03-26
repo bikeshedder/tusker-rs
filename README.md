@@ -31,7 +31,7 @@ a complete rewrite in Rust. This project is in a very early stage.
   - [ ] rlspolicies
   - [ ] schemas
   - [x] sequences
-  - [ ] triggers
+  - [x] triggers
   - [ ] types
 
 ## Installation of the command line tool

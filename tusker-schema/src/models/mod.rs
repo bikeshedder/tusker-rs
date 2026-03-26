@@ -5,4 +5,5 @@ pub mod routine;
 pub mod sequence;
 pub mod schema;
 pub mod table;
+pub mod trigger;
 pub mod view;

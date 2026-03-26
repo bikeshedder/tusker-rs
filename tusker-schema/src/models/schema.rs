@@ -6,7 +6,7 @@ use crate::diff::{diff, ChangeType, Diff, DiffSql};
 
 use super::{
     constraint::Constraint, r#enum::Enum, routine::Routine, sequence::Sequence, table::Table,
-    view::View,
+    trigger::Trigger, view::View,
 };
 
 #[derive(Debug, Default, Eq, PartialEq)]
@@ -17,6 +17,7 @@ pub struct Schema {
     pub tables: HashMap<String, Table>,
     pub views: HashMap<String, View>,
     pub routines: HashMap<(String, String), Routine>,
+    pub triggers: HashMap<(String, String), Trigger>,
     pub constraints: HashMap<(String, String), Constraint>,
 }
 
@@ -48,6 +49,11 @@ impl Schema {
             (&f.name, &f.identity_arguments)
         })
     }
+    pub fn diff_triggers<'a>(&'a self, other: &'a Self) -> Diff<'a, Trigger> {
+        diff(self.triggers.values(), other.triggers.values(), |t| {
+            (&t.table_name, &t.name)
+        })
+    }
 }
 
 impl DiffSql for Diff<'_, Schema> {
@@ -57,6 +63,7 @@ impl DiffSql for Diff<'_, Schema> {
             todo!("Schema creation not supported, yet.")
         }
         for (a, b) in &self.a_and_b {
+            v.extend(a.diff_triggers(b).sql());
             v.extend(a.diff_enums(b).sql());
             v.extend(a.diff_sequences(b).sql());
             v.extend(a.diff_routines(b).sql());
