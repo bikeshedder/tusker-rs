@@ -17,7 +17,7 @@ pub struct Migration {
 }
 
 impl Migration {
-    pub fn get_status(&self) -> MigrationStatus {
+    pub fn get_status(&self) -> MigrationStatus<'_> {
         match (&self.file, &self.db) {
             (Some(file), Some(db)) => {
                 if file.name == db.name && file.hash == db.hash {
