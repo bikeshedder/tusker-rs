@@ -15,6 +15,15 @@ JOIN pg_catalog.pg_sequences AS seqs
    AND seqs.sequencename = cls.relname
 WHERE ns.nspname = $1
   AND cls.relkind = 'S'
+  -- Skip sequences that belong to an installed extension. Those should be
+  -- managed via CREATE EXTENSION / ALTER EXTENSION, not by schema diffs.
+  AND NOT EXISTS (
+      SELECT 1
+      FROM pg_catalog.pg_depend AS dep
+      WHERE dep.classid = 'pg_class'::regclass
+        AND dep.objid = cls.oid
+        AND dep.refclassid = 'pg_extension'::regclass
+  )
   AND NOT EXISTS (
       SELECT 1
       FROM pg_catalog.pg_depend AS dep
