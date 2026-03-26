@@ -15,6 +15,8 @@ struct QueryTraitOpts {
 pub fn derive_query(input: TokenStream) -> TokenStream {
     let ast: DeriveInput = syn::parse(input).unwrap();
     let opts = QueryTraitOpts::from_derive_input(&ast).expect("Deriving Query failed");
+    let generics = ast.generics.clone();
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     let Data::Struct(s) = ast.data else {
         unreachable!();
     };
@@ -28,7 +30,7 @@ pub fn derive_query(input: TokenStream) -> TokenStream {
         }
     });
     quote! {
-        impl ::tusker_query::Query for #name {
+        impl #impl_generics ::tusker_query::Query for #name #ty_generics #where_clause {
             const SQL: &'static str = include_str!(concat!(
                 env!("CARGO_MANIFEST_DIR"),
                 "/db/queries/",
@@ -56,6 +58,8 @@ struct FromRowTraitOpts {
 pub fn derive_from_row(input: TokenStream) -> TokenStream {
     let ast: DeriveInput = syn::parse(input).unwrap();
     let opts = FromRowTraitOpts::from_derive_input(&ast).expect("Deriving FromRow failed");
+    let generics = ast.generics.clone();
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     let Data::Struct(s) = ast.data else {
         unreachable!();
     };
@@ -67,7 +71,7 @@ pub fn derive_from_row(input: TokenStream) -> TokenStream {
         }
     });
     quote! {
-        impl ::tusker_query::FromRow for #name {
+        impl #impl_generics ::tusker_query::FromRow for #name #ty_generics #where_clause {
             fn from_row(row: ::tokio_postgres::Row) -> Self {
                 Self {
                     #( #fields ),*
