@@ -289,12 +289,9 @@ pub async fn run(pg_config: &Config, args: &RunArgs) -> Result<(), Error> {
     let colors = Colors::new();
     let migrations = load_migrations(&db, &args.migrations_dir).await?;
     if !migration_table_exists(&db).await? {
-        writeln!(stdout, "Creating migration table, views and functions...")?;
+        writeln!(stdout, "Creating migration table...")?;
         db.init().await.map_err(|e| {
-            Error::Pg(
-                "Unable to create migration table, views and functions".into(),
-                e,
-            )
+            Error::Pg("Unable to create migration table".into(), e)
         })?;
     }
     // FIXME make sure there are no modified or missing migration files first (!)

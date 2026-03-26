@@ -5,9 +5,11 @@ use tokio_postgres::{
     error::{DbError, ErrorPosition as PgErrorPosition},
     Error as PgError,
 };
+use tusker_query::query;
 
 use crate::error::Error;
 use crate::file::MigrationFile;
+use crate::queries;
 
 pub struct Database {
     pub client: tokio_postgres::Client,
@@ -38,49 +40,39 @@ impl Database {
         self.client.simple_query(sql).await.map(|_| ())
     }
     pub async fn get_migrations(&self) -> Result<Vec<DbMigration>, PgError> {
-        let stmt = self
-            .client
-            .prepare("SELECT number, name, hash FROM \"migration_current\"")
-            .await?;
-        let result = self.client.query(&stmt, &[]).await?;
-        Ok(result
+        Ok(query(&self.client, queries::MigrationCurrent {})
+            .await?
             .iter()
             .map(|row| DbMigration {
-                number: row.get(0),
-                name: row.get(1),
-                hash: row.get(2),
+                number: row.number,
+                name: row.name.clone(),
+                hash: row.hash.clone(),
             })
             .collect())
     }
     pub async fn get_migration_log(&self) -> Result<Vec<DbMigrationLog>, PgError> {
-        let stmt = self
-            .client
-            .prepare("SELECT number, name, timestamp, operation::text FROM \"migration_log\"")
-            .await?;
-        let result = self.client.query(&stmt, &[]).await?;
-        Ok(result
+        Ok(query(&self.client, queries::MigrationLog {})
+            .await?
             .iter()
             .map(|row| DbMigrationLog {
-                number: row.get(0),
-                name: row.get(1),
-                timestamp: row.get(2),
-                operation: row.get(3),
+                number: row.number,
+                name: row.name.clone(),
+                timestamp: row.timestamp,
+                operation: row.operation.clone(),
             })
             .collect())
     }
     pub async fn update_migration(&self, migration_file: &MigrationFile) -> Result<(), PgError> {
-        let sql = "SELECT migration_update($1, $2, $3)";
-        self.client
-            .execute(
-                sql,
-                &[
-                    &migration_file.number,
-                    &migration_file.name,
-                    &migration_file.hash,
-                ],
-            )
-            .await
-            .map(|_| ())
+        query(
+            &self.client,
+            queries::MigrationUpdate {
+                number: migration_file.number,
+                name: &migration_file.name,
+                hash: &migration_file.hash,
+            },
+        )
+        .await?;
+        Ok(())
     }
     pub async fn apply_migration(
         &self,
@@ -89,36 +81,32 @@ impl Database {
     ) -> Result<(), PgError> {
         self.client.simple_query(sql).await.map(|_| ())?;
         // log that migration has been run
-        let sql = "SELECT migration_insert($1, $2, $3)";
-        self.client
-            .execute(
-                sql,
-                &[
-                    &migration_file.number,
-                    &migration_file.name,
-                    &migration_file.hash,
-                ],
-            )
-            .await
-            .map(|_| ())
+        query(
+            &self.client,
+            queries::MigrationInsert {
+                number: migration_file.number,
+                name: &migration_file.name,
+                hash: &migration_file.hash,
+            },
+        )
+        .await
+        .map(|_| ())
     }
     pub async fn fake_migration(&self, migration_file: &MigrationFile) -> Result<(), PgError> {
-        let sql = "SELECT migration_fake($1, $2, $3)";
-        self.client
-            .execute(
-                sql,
-                &[
-                    &migration_file.number,
-                    &migration_file.name,
-                    &migration_file.hash,
-                ],
-            )
-            .await
-            .map(|_| ())
+        query(
+            &self.client,
+            queries::MigrationFake {
+                number: migration_file.number,
+                name: &migration_file.name,
+                hash: &migration_file.hash,
+            },
+        )
+        .await
+        .map(|_| ())
     }
     pub async fn remove_migration(&self, number: i32) -> Result<(), PgError> {
-        let sql = "SELECT migration_delete($1)";
-        self.client.execute(sql, &[&number]).await.map(|_| ())
+        query(&self.client, queries::MigrationDelete { number }).await?;
+        Ok(())
     }
 }
 

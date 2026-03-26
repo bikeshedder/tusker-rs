@@ -1552,6 +1552,7 @@ dependencies = [
  "time",
  "tokio",
  "tokio-postgres",
+ "tusker-query",
 ]
 
 [[package]]
