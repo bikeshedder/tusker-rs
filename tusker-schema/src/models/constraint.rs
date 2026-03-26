@@ -40,6 +40,7 @@ impl Constraint {
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum ConstraintType {
     Check,
+    NotNull,
     PrimaryKey,
     Unique,
     Trigger,
@@ -57,6 +58,7 @@ impl<'a> FromSql<'a> for ConstraintType {
         let s = String::from_sql(ty, raw)?;
         match s.as_str() {
             "c" => Ok(Self::Check),
+            "n" => Ok(Self::NotNull),
             "f" => Ok(Self::ForeignKey),
             "p" => Ok(Self::PrimaryKey),
             "u" => Ok(Self::Unique),

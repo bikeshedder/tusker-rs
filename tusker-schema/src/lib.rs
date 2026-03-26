@@ -6,6 +6,8 @@ use models::{constraint::Constraint, schema::Schema, table::Table, view::View};
 use queries::Relkind;
 use tokio_postgres::Client;
 
+use crate::models::constraint::ConstraintType;
+
 pub mod diff;
 pub mod models;
 pub mod queries;
@@ -73,15 +75,23 @@ pub async fn inspect(client: &Client) -> Result<Inspection> {
         )
         .await?;
         for row in rows {
+            let constraint = Constraint {
+                schema: schema.name.clone(),
+                table: row.table,
+                name: row.name,
+                r#type: row.r#type,
+                definition: row.def,
+            };
+            if constraint.r#type == ConstraintType::NotNull {
+                // Skip NOT NULL constraints introduced in PostgreSQL 18
+                // It might be useful to support named not null constraints
+                // in the future. That's why this is not filtered as part of
+                // the query but here in the code.
+                continue;
+            }
             schema.constraints.insert(
-                (row.table.clone(), row.name.clone()),
-                Constraint {
-                    schema: schema.name.clone(),
-                    table: row.table,
-                    name: row.name,
-                    r#type: row.r#type,
-                    definition: row.def,
-                },
+                (constraint.table.clone(), constraint.name.clone()),
+                constraint,
             );
         }
         schemas.insert(schema.name.clone(), schema);
