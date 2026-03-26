@@ -129,3 +129,22 @@ pub struct EnumRow {
     pub name: String,
     pub labels: Vec<String>,
 }
+
+#[derive(Query)]
+#[query(sql = "sequences", row = SequenceRow)]
+pub struct Sequences {
+    pub schema: String,
+}
+
+#[derive(Debug, FromRow)]
+pub struct SequenceRow {
+    pub schema: String,
+    pub name: String,
+    pub data_type: String,
+    pub start_value: i64,
+    pub min_value: i64,
+    pub max_value: i64,
+    pub increment_by: i64,
+    pub cycle: bool,
+    pub cache_size: i64,
+}

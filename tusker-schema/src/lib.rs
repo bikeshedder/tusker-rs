@@ -4,7 +4,7 @@ use anyhow::Result;
 use diff::{diff, Diff};
 use models::{
     constraint::Constraint, r#enum::Enum, function::Function, schema::Schema, table::Table,
-    view::View,
+    sequence::Sequence, view::View,
 };
 use queries::Relkind;
 use tokio_postgres::Client;
@@ -50,6 +50,18 @@ pub async fn inspect(client: &Client) -> Result<Inspection> {
         for row in rows {
             let e = Enum::from(row);
             schema.enums.insert(e.name.clone(), e);
+        }
+        // Sequences
+        let rows = tusker_query::query(
+            client,
+            queries::Sequences {
+                schema: schema.name.clone(),
+            },
+        )
+        .await?;
+        for row in rows {
+            let sequence = Sequence::from(row);
+            schema.sequences.insert(sequence.name.clone(), sequence);
         }
         // Tables
         let rows = tusker_query::query(

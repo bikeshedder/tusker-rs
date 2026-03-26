@@ -30,7 +30,7 @@ a complete rewrite in Rust. This project is in a very early stage.
   - [x] relations
   - [ ] rlspolicies
   - [ ] schemas
-  - [ ] sequences
+  - [x] sequences
   - [ ] triggers
   - [ ] types
 
