@@ -102,3 +102,17 @@ pub struct Constraint {
     pub r#type: ConstraintType,
     pub def: String,
 }
+
+#[derive(Query)]
+#[query(sql = "functions", row = FunctionRow)]
+pub struct Functions {
+    pub schema: String,
+}
+
+#[derive(Debug, FromRow)]
+pub struct FunctionRow {
+    pub schema: String,
+    pub name: String,
+    pub identity_arguments: String,
+    pub definition: String,
+}

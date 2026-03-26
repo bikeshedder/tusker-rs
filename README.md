@@ -24,7 +24,7 @@ a complete rewrite in Rust. This project is in a very early stage.
   - [ ] domains
   - [ ] enums
   - [ ] extensions
-  - [ ] functions
+  - [x] functions (only normal functions)
   - [x] indexes
   - [ ] privileges
   - [x] relations

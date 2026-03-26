@@ -45,12 +45,14 @@ pub enum ChangeType {
     // order.
     DropConstraint(Reverse<ConstraintType>),
     DropColumn,
+    DropFunction,
     DropTable,
     DropSchema,
     AlterColumn,
     CreateSchema,
     CreateTable,
     CreateColumn,
+    CreateFunction,
     CreateConstraint(ConstraintType),
 }
 

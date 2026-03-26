@@ -4,13 +4,14 @@ use itertools::Itertools;
 
 use crate::diff::{diff, ChangeType, Diff, DiffSql};
 
-use super::{constraint::Constraint, table::Table, view::View};
+use super::{constraint::Constraint, function::Function, table::Table, view::View};
 
 #[derive(Debug, Default, Eq, PartialEq)]
 pub struct Schema {
     pub name: String,
     pub tables: HashMap<String, Table>,
     pub views: HashMap<String, View>,
+    pub functions: HashMap<(String, String), Function>,
     pub constraints: HashMap<(String, String), Constraint>,
 }
 
@@ -31,6 +32,11 @@ impl Schema {
             (&c.table, &c.name)
         })
     }
+    pub fn diff_functions<'a>(&'a self, other: &'a Self) -> Diff<'a, Function> {
+        diff(self.functions.values(), other.functions.values(), |f| {
+            (&f.name, &f.identity_arguments)
+        })
+    }
 }
 
 impl DiffSql for Diff<'_, Schema> {
@@ -40,6 +46,7 @@ impl DiffSql for Diff<'_, Schema> {
             todo!("Schema creation not supported, yet.")
         }
         for (a, b) in &self.a_and_b {
+            v.extend(a.diff_functions(b).sql());
             v.extend(a.diff_tables(b).sql());
             v.extend(a.diff_constraints(b).sql());
         }

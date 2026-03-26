@@ -2,7 +2,9 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 use diff::{diff, Diff};
-use models::{constraint::Constraint, schema::Schema, table::Table, view::View};
+use models::{
+    constraint::Constraint, function::Function, schema::Schema, table::Table, view::View,
+};
 use queries::Relkind;
 use tokio_postgres::Client;
 
@@ -92,6 +94,24 @@ pub async fn inspect(client: &Client) -> Result<Inspection> {
             schema.constraints.insert(
                 (constraint.table.clone(), constraint.name.clone()),
                 constraint,
+            );
+        }
+        // Functions
+        let rows = tusker_query::query(
+            client,
+            queries::Functions {
+                schema: schema.name.clone(),
+            },
+        )
+        .await?;
+        for row in rows {
+            let function = Function::from(row);
+            schema.functions.insert(
+                (
+                    function.name.clone(),
+                    function.identity_arguments.clone(),
+                ),
+                function,
             );
         }
         schemas.insert(schema.name.clone(), schema);
