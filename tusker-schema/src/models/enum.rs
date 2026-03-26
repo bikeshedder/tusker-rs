@@ -19,7 +19,10 @@ impl Enum {
             "CREATE TYPE {}.{} AS ENUM ({});\n",
             quote_ident(&self.schema),
             quote_ident(&self.name),
-            self.labels.iter().map(|label| quote_literal(label)).join(", ")
+            self.labels
+                .iter()
+                .map(|label| quote_literal(label))
+                .join(", ")
         )
     }
 
@@ -32,21 +35,8 @@ impl Enum {
     }
 
     fn alter_sql(&self, previous: &Self) -> Vec<(ChangeType, String)> {
-        if self.labels.starts_with(&previous.labels) {
-            self.labels[previous.labels.len()..]
-                .iter()
-                .map(|label| {
-                    (
-                        ChangeType::AlterType,
-                        format!(
-                            "ALTER TYPE {}.{} ADD VALUE {};\n",
-                            quote_ident(&self.schema),
-                            quote_ident(&self.name),
-                            quote_literal(label),
-                        ),
-                    )
-                })
-                .collect()
+        if can_safely_add_values(previous, self) {
+            self.add_value_sql(previous)
         } else {
             vec![(
                 ChangeType::AlterType,
@@ -73,6 +63,55 @@ $$;\n",
                 ),
             )]
         }
+    }
+
+    fn add_value_sql(&self, previous: &Self) -> Vec<(ChangeType, String)> {
+        // PostgreSQL applies enum additions one statement at a time. The
+        // placement of later INSERTs therefore depends on the enum state after
+        // the earlier INSERTs have already been applied. We mirror that here
+        // by keeping a mutable `current` label list and updating it after each
+        // generated statement.
+        let mut current = previous.labels.clone();
+        let mut statements = Vec::new();
+
+        for (idx, label) in self.labels.iter().enumerate() {
+            // If the label is already at the right position in the current
+            // intermediate state, nothing needs to be emitted.
+            if idx < current.len() && current[idx] == *label {
+                continue;
+            }
+            // Existing labels may appear later in `self.labels` because new
+            // values were inserted ahead of them. They still do not require an
+            // ALTER TYPE statement.
+            if current.contains(label) {
+                continue;
+            }
+
+            // Only emit placement when the new label must appear before an
+            // already-existing label. Appends can use a plain ADD VALUE.
+            let placement = if idx < current.len() {
+                format!(" BEFORE {}", quote_literal(&current[idx]))
+            } else {
+                String::new()
+            };
+
+            statements.push((
+                ChangeType::AlterType,
+                format!(
+                    "ALTER TYPE {}.{} ADD VALUE {}{};\n",
+                    quote_ident(&self.schema),
+                    quote_ident(&self.name),
+                    quote_literal(label),
+                    placement,
+                ),
+            ));
+
+            // Keep `current` in sync with the statement we just emitted so the
+            // next iteration sees the same enum ordering PostgreSQL will see.
+            current.insert(idx, label.clone());
+        }
+
+        statements
     }
 }
 
@@ -110,4 +149,14 @@ fn quote_literal(value: &str) -> String {
 
 fn join_labels(labels: &[String]) -> String {
     labels.iter().map(|label| quote_literal(label)).join(", ")
+}
+
+fn can_safely_add_values(previous: &Enum, new: &Enum) -> bool {
+    if previous.labels.len() > new.labels.len() {
+        return false;
+    }
+    previous.labels.iter().eq(new
+        .labels
+        .iter()
+        .filter(|label| previous.labels.contains(label)))
 }

@@ -1,1 +1,1 @@
-CREATE TYPE public.mood AS ENUM ('sad', 'ok', 'happy');
+CREATE TYPE public.mood AS ENUM ('angry', 'sad', 'ok', 'happy');

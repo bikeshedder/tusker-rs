@@ -1,5 +1,5 @@
 -- WARNING: enum "public"."mood" changed incompatibly and no safe automatic migration was generated.
--- Previous labels: 'sad', 'ok', 'happy'
+-- Previous labels: 'angry', 'sad', 'ok', 'happy'
 -- Target labels: 'sad', 'ok'
 -- Suggested manual approach:
 -- 1. Change dependent columns to TEXT with an explicit USING cast.
