@@ -180,17 +180,19 @@ tusker migrate
 Upon startup `tusker` reads all files from the `migrations` directory
 and runs them on an empty database. Another empty database is created
 and the target schema is created. Then those two schemas are
-diffed using the excellent [migra](https://pypi.org/project/migra/)
-tool and the output printed to the console.
+diffed and the output printed to the console.
 
 ## Tusker is `unsafe` by default
 
-Unlike `migra` the `tusker` command by default does not throw an
-exception when a `drop`-statement is generated. Always check your
-generated migrations prior to running them. If you want the same
-behavior as migra you can either use the `--safe` argument or set
-the `migra.safe` configuration option to `True` in your `tusker.toml`
-file.
+The `tusker` command by default does not throw an exception when a
+`drop`-statement is generated. Always check your generated migrations
+prior to running them. If you want more safety you can either use the
+`--safe` argument or set the `diff.safe` configuration option to `True`
+in your `tusker.toml` file.
+
+Some changes are unsafe even when they are not simple drops. For example,
+unsupported enum rewrites deliberately generate SQL that raises an exception
+with a warning instead of trying to apply a dangerous automatic migration.
 
 ## FAQ
 
