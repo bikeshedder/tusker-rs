@@ -23,8 +23,15 @@ impl Function {
     }
 
     fn drop_sql(&self) -> String {
+        let thing = match self.kind {
+            RoutineKind::Function => "FUNCTION",
+            RoutineKind::Procedure => "PROCEDURE",
+            RoutineKind::Aggregate => "AGGREGATE",
+            RoutineKind::Window => "FUNCTION",
+        };
         format!(
-            "DROP FUNCTION {}.{}({});\n",
+            "DROP {} {}.{}({});\n",
+            thing,
             quote_ident(&self.schema),
             quote_ident(&self.name),
             self.identity_arguments,

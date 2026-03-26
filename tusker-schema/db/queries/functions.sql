@@ -7,7 +7,7 @@ SELECT
 FROM pg_catalog.pg_proc AS p
 JOIN pg_catalog.pg_namespace AS ns ON ns.oid = p.pronamespace
 WHERE ns.nspname = $1
-  AND p.prokind = 'f'
+  AND p.prokind IN ('f', 'p')
   -- Skip routines that belong to an installed extension. Those should be
   -- managed via CREATE EXTENSION / ALTER EXTENSION, not by schema diffs.
   AND NOT EXISTS (
