@@ -1,6 +1,6 @@
 use crate::{
     diff::{ChangeType, Diff, DiffSql},
-    queries::FunctionRow,
+    queries::{FunctionRow, RoutineKind},
     sql::quote_ident,
 };
 
@@ -8,6 +8,7 @@ use crate::{
 pub struct Function {
     pub schema: String,
     pub name: String,
+    pub kind: RoutineKind,
     pub identity_arguments: String,
     pub definition: String,
 }
@@ -36,6 +37,7 @@ impl From<FunctionRow> for Function {
         Self {
             schema: row.schema,
             name: row.name,
+            kind: row.kind,
             identity_arguments: row.identity_arguments,
             definition: row.definition,
         }

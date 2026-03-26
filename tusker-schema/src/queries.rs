@@ -109,10 +109,41 @@ pub struct Functions {
     pub schema: String,
 }
 
+#[derive(Debug, Eq, PartialEq)]
+pub enum RoutineKind {
+    Function,
+    Procedure,
+    Aggregate,
+    Window,
+}
+
+impl FromSql<'_> for RoutineKind {
+    fn from_sql(
+        _ty: &postgres_types::Type,
+        raw: &[u8],
+    ) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+        Ok(match raw {
+            b"f" => Self::Function,
+            b"p" => Self::Procedure,
+            b"a" => Self::Aggregate,
+            b"w" => Self::Window,
+            x => Err(UnsupportedRoutineKind(x.to_owned()))?,
+        })
+    }
+    fn accepts(ty: &postgres_types::Type) -> bool {
+        *ty == postgres_types::Type::CHAR
+    }
+}
+
+#[derive(Error, Debug)]
+#[error("Unsupported routine kind value")]
+struct UnsupportedRoutineKind(Vec<u8>);
+
 #[derive(Debug, FromRow)]
 pub struct FunctionRow {
     pub schema: String,
     pub name: String,
+    pub kind: RoutineKind,
     pub identity_arguments: String,
     pub definition: String,
 }
