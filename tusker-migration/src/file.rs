@@ -42,10 +42,10 @@ impl MigrationFile {
 }
 
 fn parse_filename(filename: String) -> Result<(i32, String), String> {
-    let v: Vec<&str> = filename.splitn(2, '.').collect();
+    let v: Vec<&str> = filename.splitn(2, '_').collect();
     let number = v
         .first()
-        .ok_or_else(|| String::from("Expected format <number>.<name>"))?;
+        .ok_or_else(|| String::from("Expected format <number>_<name>"))?;
     let number = number
         .parse::<i32>()
         .map_err(|e| format!("Invalid number: {}", e))?;
