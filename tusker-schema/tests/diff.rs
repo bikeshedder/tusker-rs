@@ -96,6 +96,7 @@ async fn test_basic() {
 #[rstest]
 #[tokio::test]
 async fn diff(
+    #[dirs]
     #[files("tests/*")]
     #[exclude("\\.rs$")]
     path: PathBuf,
