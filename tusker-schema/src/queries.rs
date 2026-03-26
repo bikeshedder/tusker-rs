@@ -104,8 +104,8 @@ pub struct Constraint {
 }
 
 #[derive(Query)]
-#[query(sql = "functions", row = FunctionRow)]
-pub struct Functions {
+#[query(sql = "routines", row = RoutineRow)]
+pub struct Routines {
     pub schema: String,
 }
 
@@ -140,7 +140,7 @@ impl FromSql<'_> for RoutineKind {
 struct UnsupportedRoutineKind(Vec<u8>);
 
 #[derive(Debug, FromRow)]
-pub struct FunctionRow {
+pub struct RoutineRow {
     pub schema: String,
     pub name: String,
     pub kind: RoutineKind,
