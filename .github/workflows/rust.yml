@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: rustup update nightly
-      - run: rustup update 1.85 && rustup default 1.85
+      - run: rustup update 1.94 && rustup default 1.94
       - run: cargo +nightly update -Z direct-minimal-versions
       - run: cargo check --all-features
 
@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-24.04
     services:
       postgres:
-        image: postgres:17-alpine
+        image: postgres:18-alpine
         ports:
           - 5432:5432
         env:
@@ -39,7 +39,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - run: rustup update 1.85 && rustup default 1.85
+      - run: rustup update 1.94 && rustup default 1.94
       - uses: actions/checkout@v4
       - name: Build
         run: cargo build --all-features --workspace
