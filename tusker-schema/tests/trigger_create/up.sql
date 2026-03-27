@@ -9,6 +9,6 @@ AS $function$
 BEGIN
     RETURN NEW;
 END;
-$function$
+$function$;
 
 CREATE TRIGGER items_bump BEFORE INSERT ON public.items FOR EACH ROW EXECUTE FUNCTION bump();

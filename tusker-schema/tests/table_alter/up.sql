@@ -1,6 +1,7 @@
 ALTER TABLE "public"."a"
-    ALTER COLUMN "id" bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
-    ALTER COLUMN "name" character varying(50) NOT NULL;
+    ALTER COLUMN "id" ADD GENERATED ALWAYS AS IDENTITY,
+    ALTER COLUMN "id" SET NOT NULL,
+    ALTER COLUMN "name" SET NOT NULL;
 
 ALTER TABLE "public"."a" ADD CONSTRAINT "a_age_check" CHECK ((age >= 0));
 
