@@ -73,7 +73,11 @@ async fn inspect_sql(client: &mut Client, sql: &str) -> Result<Inspection> {
     Ok(inspection)
 }
 
-async fn apply_and_inspect(client: &mut Client, base_sql: &str, diff_sql: &str) -> Result<Inspection> {
+async fn apply_and_inspect(
+    client: &mut Client,
+    base_sql: &str,
+    diff_sql: &str,
+) -> Result<Inspection> {
     let txn = client.transaction().await.unwrap();
     txn.simple_query(base_sql).await?;
     if !diff_sql.trim().is_empty() {

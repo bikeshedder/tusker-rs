@@ -37,7 +37,9 @@ impl Schema {
         diff(self.enums.values(), other.enums.values(), |e| &e.name)
     }
     pub fn diff_sequences<'a>(&'a self, other: &'a Self) -> Diff<'a, Sequence> {
-        diff(self.sequences.values(), other.sequences.values(), |s| &s.name)
+        diff(self.sequences.values(), other.sequences.values(), |s| {
+            &s.name
+        })
     }
     pub fn diff_constraints<'a>(&'a self, other: &'a Self) -> Diff<'a, Constraint> {
         diff(self.constraints.values(), other.constraints.values(), |c| {

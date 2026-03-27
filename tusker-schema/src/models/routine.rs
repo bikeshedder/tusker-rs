@@ -20,9 +20,7 @@ impl Routine {
         // application logic expect a complete standalone statement.
         format!(
             "{};\n",
-            self.definition
-                .trim_end_matches('\n')
-                .trim_end_matches(';')
+            self.definition.trim_end_matches('\n').trim_end_matches(';')
         )
     }
 

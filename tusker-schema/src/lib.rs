@@ -132,10 +132,7 @@ pub async fn inspect(client: &Client) -> Result<Inspection> {
         for row in rows {
             let routine = Routine::from(row);
             schema.routines.insert(
-                (
-                    routine.name.clone(),
-                    routine.identity_arguments.clone(),
-                ),
+                (routine.name.clone(), routine.identity_arguments.clone()),
                 routine,
             );
         }

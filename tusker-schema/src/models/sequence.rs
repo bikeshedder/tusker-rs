@@ -19,20 +19,13 @@ pub struct Sequence {
 
 impl Sequence {
     fn qualified_name(&self) -> String {
-        format!(
-            "{}.{}",
-            quote_ident(&self.schema),
-            quote_ident(&self.name)
-        )
+        format!("{}.{}", quote_ident(&self.schema), quote_ident(&self.name))
     }
 
     fn options_sql(&self) -> String {
         let mut sql = format!(
             "    AS {}\n    INCREMENT BY {}\n    MINVALUE {}\n    MAXVALUE {}\n",
-            self.data_type,
-            self.increment_by,
-            self.min_value,
-            self.max_value,
+            self.data_type, self.increment_by, self.min_value, self.max_value,
         );
         sql.push_str(&format!("    START WITH {}\n", self.start_value));
         sql.push_str(&format!(

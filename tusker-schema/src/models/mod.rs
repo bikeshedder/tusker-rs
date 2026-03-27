@@ -1,9 +1,9 @@
 pub mod column;
-pub mod r#enum;
 pub mod constraint;
+pub mod r#enum;
 pub mod routine;
-pub mod sequence;
 pub mod schema;
+pub mod sequence;
 pub mod table;
 pub mod trigger;
 pub mod view;
