@@ -26,17 +26,28 @@ impl Sequence {
         )
     }
 
-    fn create_sql(&self) -> String {
-        format!(
-            "CREATE SEQUENCE {}\n    AS {}\n    INCREMENT BY {}\n    MINVALUE {}\n    MAXVALUE {}\n    START WITH {}\n    CACHE {}\n    {};\n",
-            self.qualified_name(),
+    fn options_sql(&self) -> String {
+        let mut sql = format!(
+            "    AS {}\n    INCREMENT BY {}\n    MINVALUE {}\n    MAXVALUE {}\n",
             self.data_type,
             self.increment_by,
             self.min_value,
             self.max_value,
-            self.start_value,
+        );
+        sql.push_str(&format!("    START WITH {}\n", self.start_value));
+        sql.push_str(&format!(
+            "    CACHE {}\n    {}",
             self.cache_size,
             if self.cycle { "CYCLE" } else { "NO CYCLE" },
+        ));
+        sql
+    }
+
+    fn create_sql(&self) -> String {
+        format!(
+            "CREATE SEQUENCE {}\n{};\n",
+            self.qualified_name(),
+            self.options_sql(),
         )
     }
 
@@ -44,18 +55,29 @@ impl Sequence {
         format!("DROP SEQUENCE {};\n", self.qualified_name())
     }
 
-    fn alter_sql(&self) -> String {
-        format!(
-            "ALTER SEQUENCE {}\n    AS {}\n    INCREMENT BY {}\n    MINVALUE {}\n    MAXVALUE {}\n    START WITH {}\n    CACHE {}\n    {};\n",
+    fn alter_sql(&self, previous: &Self) -> String {
+        let mut statements = Vec::new();
+
+        // PostgreSQL validates the existing restart value against the new
+        // MINVALUE before applying START WITH from the same ALTER SEQUENCE.
+        // If the new minimum crosses above the old start, we have to move
+        // START/RESTART first and then apply the full alter.
+        if self.min_value > previous.start_value {
+            statements.push(format!(
+                "ALTER SEQUENCE {}\n    START WITH {}\n    RESTART WITH {};\n",
+                self.qualified_name(),
+                self.start_value,
+                self.start_value,
+            ));
+        }
+
+        statements.push(format!(
+            "ALTER SEQUENCE {}\n{};\n",
             self.qualified_name(),
-            self.data_type,
-            self.increment_by,
-            self.min_value,
-            self.max_value,
-            self.start_value,
-            self.cache_size,
-            if self.cycle { "CYCLE" } else { "NO CYCLE" },
-        )
+            self.options_sql()
+        ));
+
+        statements.join("\n")
     }
 }
 
@@ -83,7 +105,7 @@ impl DiffSql for Diff<'_, Sequence> {
         }
         for (a, b) in &self.a_and_b {
             if a != b {
-                v.push((ChangeType::AlterSequence, b.alter_sql()));
+                v.push((ChangeType::AlterSequence, b.alter_sql(a)));
             }
         }
         for b in &self.b_only {

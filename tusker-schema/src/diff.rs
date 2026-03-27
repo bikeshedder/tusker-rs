@@ -54,6 +54,7 @@ pub enum ChangeType {
     AlterSequence,
     AlterType,
     AlterColumn,
+    Unsupported,
     CreateSchema,
     CreateSequence,
     CreateType,

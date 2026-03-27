@@ -15,11 +15,15 @@ pub struct Routine {
 
 impl Routine {
     fn create_sql(&self) -> String {
-        if self.definition.ends_with('\n') {
-            self.definition.clone()
-        } else {
-            format!("{}\n", self.definition)
-        }
+        // `pg_get_functiondef` returns the body without a guaranteed trailing
+        // statement terminator/newline, while our fixture output and migration
+        // application logic expect a complete standalone statement.
+        format!(
+            "{};\n",
+            self.definition
+                .trim_end_matches('\n')
+                .trim_end_matches(';')
+        )
     }
 
     fn drop_sql(&self) -> String {

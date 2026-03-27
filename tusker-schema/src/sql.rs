@@ -24,6 +24,17 @@ impl fmt::Display for StatementBuilder {
 }
 
 pub fn quote_ident(ident: &str) -> String {
-    // FIXME add escapes
-    format!("\"{}\"", ident)
+    format!("\"{}\"", ident.replace('"', "\"\""))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::quote_ident;
+
+    #[test]
+    fn quote_ident_doubles_quotes_but_leaves_backslashes() {
+        assert_eq!(quote_ident("plain"), "\"plain\"");
+        assert_eq!(quote_ident("a\"b"), "\"a\"\"b\"");
+        assert_eq!(quote_ident(r"a\b"), r#""a\b""#);
+    }
 }

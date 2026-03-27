@@ -50,14 +50,39 @@ impl Table {
             quote_ident(&self.name),
         )
     }
-    pub fn alter_sql(&self, mut col_sql: Vec<(ChangeType, String)>) -> String {
-        col_sql.sort_by_key(|t| t.0);
-        format!(
-            "ALTER TABLE {}.{}\n    {};\n",
-            quote_ident(&self.schema),
-            quote_ident(&self.name),
-            col_sql.iter().map(|(_, sql)| sql).join(",\n    ")
-        )
+    pub fn alter_sql(&self, col_sql: Vec<(ChangeType, String)>) -> String {
+        let mut output = Vec::new();
+        let (errors, alter_clauses): (Vec<_>, Vec<_>) = col_sql
+            .into_iter()
+            .partition(|(change_type, _)| *change_type == ChangeType::Unsupported);
+        let has_errors = !errors.is_empty();
+
+        if !alter_clauses.is_empty() {
+            output.push(format!(
+                "ALTER TABLE {}.{}\n{};\n",
+                quote_ident(&self.schema),
+                quote_ident(&self.name),
+                alter_clauses
+                    .iter()
+                    .map(|(_, sql)| format!("    {}", sql))
+                    .join(",\n"),
+            ));
+        }
+
+        output.extend(errors.into_iter().map(|(_, sql)| sql));
+
+        if has_errors {
+            output.push(format!(
+                "DO $$\n\
+BEGIN\n\
+    RAISE EXCEPTION 'Unsupported schema change for table {}.{}; check the warnings above';\n\
+END\n\
+$$;\n",
+                self.schema, self.name
+            ));
+        }
+
+        output.join("\n")
     }
     pub fn diff_columns<'a>(&'a self, other: &'a Self) -> Diff<'a, Column> {
         diff(self.columns.iter(), other.columns.iter(), |c| &c.name)
