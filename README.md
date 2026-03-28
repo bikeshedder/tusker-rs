@@ -21,7 +21,7 @@ a complete rewrite in Rust. This project is in a very early stage.
   - [ ] collations
   - [x] constraints
   - [ ] deps
-  - [ ] domains
+  - [x] domains
   - [x] enums (safe additive changes only)
   - [ ] extensions
   - [x] functions (only normal functions)

@@ -162,6 +162,23 @@ pub struct EnumRow {
 }
 
 #[derive(Query)]
+#[query(sql = "domains", row = DomainRow)]
+pub struct Domains {
+    pub schema: String,
+}
+
+#[derive(Debug, FromRow)]
+pub struct DomainRow {
+    pub schema: String,
+    pub name: String,
+    pub base_type: String,
+    pub default: Option<String>,
+    pub notnull: bool,
+    pub constraint_names: Vec<String>,
+    pub constraint_definitions: Vec<String>,
+}
+
+#[derive(Query)]
 #[query(sql = "sequences", row = SequenceRow)]
 pub struct Sequences {
     pub schema: String,

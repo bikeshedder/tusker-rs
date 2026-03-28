@@ -1,5 +1,6 @@
 pub mod column;
 pub mod constraint;
+pub mod domain;
 pub mod r#enum;
 pub mod routine;
 pub mod schema;

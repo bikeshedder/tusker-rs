@@ -5,14 +5,15 @@ use itertools::Itertools;
 use crate::diff::{diff, ChangeType, Diff, DiffSql};
 
 use super::{
-    constraint::Constraint, r#enum::Enum, routine::Routine, sequence::Sequence, table::Table,
-    trigger::Trigger, view::View,
+    constraint::Constraint, domain::Domain, r#enum::Enum, routine::Routine, sequence::Sequence,
+    table::Table, trigger::Trigger, view::View,
 };
 
 #[derive(Debug, Default, Eq, PartialEq)]
 pub struct Schema {
     pub name: String,
     pub enums: HashMap<String, Enum>,
+    pub domains: HashMap<String, Domain>,
     pub sequences: HashMap<String, Sequence>,
     pub tables: HashMap<String, Table>,
     pub views: HashMap<String, View>,
@@ -35,6 +36,9 @@ impl Schema {
     }
     pub fn diff_enums<'a>(&'a self, other: &'a Self) -> Diff<'a, Enum> {
         diff(self.enums.values(), other.enums.values(), |e| &e.name)
+    }
+    pub fn diff_domains<'a>(&'a self, other: &'a Self) -> Diff<'a, Domain> {
+        diff(self.domains.values(), other.domains.values(), |d| &d.name)
     }
     pub fn diff_sequences<'a>(&'a self, other: &'a Self) -> Diff<'a, Sequence> {
         diff(self.sequences.values(), other.sequences.values(), |s| {
@@ -67,6 +71,7 @@ impl DiffSql for Diff<'_, Schema> {
         for (a, b) in &self.a_and_b {
             v.extend(a.diff_triggers(b).sql());
             v.extend(a.diff_enums(b).sql());
+            v.extend(a.diff_domains(b).sql());
             v.extend(a.diff_sequences(b).sql());
             v.extend(a.diff_routines(b).sql());
             v.extend(a.diff_tables(b).sql());
