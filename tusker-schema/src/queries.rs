@@ -109,7 +109,7 @@ pub struct Routines {
     pub schema: String,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum RoutineKind {
     Function,
     Procedure,
@@ -146,6 +146,14 @@ pub struct RoutineRow {
     pub kind: RoutineKind,
     pub identity_arguments: String,
     pub definition: String,
+    pub dependencies: Json<Vec<RoutineDependencyRow>>,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
+pub struct RoutineDependencyRow {
+    pub schema: String,
+    pub name: String,
+    pub identity_arguments: String,
 }
 
 #[derive(Query)]

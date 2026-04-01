@@ -93,5 +93,25 @@ impl DiffSql for Diff<'_, Schema> {
 }
 
 pub fn join_sql(v: Vec<(ChangeType, String)>) -> String {
-    v.into_iter().sorted().map(|t| t.1).join("\n")
+    v.into_iter()
+        .sorted_by(|a, b| a.0.cmp(&b.0))
+        .map(|t| t.1)
+        .join("\n")
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::diff::ChangeType;
+
+    use super::join_sql;
+
+    #[test]
+    fn join_sql_preserves_insertion_order_within_same_change_type() {
+        let sql = join_sql(vec![
+            (ChangeType::CreateRoutine, "second;\n".into()),
+            (ChangeType::CreateRoutine, "first;\n".into()),
+        ]);
+
+        assert_eq!(sql, "second;\n\nfirst;\n");
+    }
 }
