@@ -3,6 +3,7 @@ pub mod constraint;
 pub mod domain;
 pub mod r#enum;
 pub mod extension;
+pub mod index;
 pub mod routine;
 pub mod schema;
 pub mod sequence;

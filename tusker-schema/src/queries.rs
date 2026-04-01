@@ -219,6 +219,20 @@ pub struct ExtensionRow {
 }
 
 #[derive(Query)]
+#[query(sql = "indexes", row = IndexRow)]
+pub struct Indexes {
+    pub schema: String,
+}
+
+#[derive(Debug, FromRow)]
+pub struct IndexRow {
+    pub schema: String,
+    pub table_name: String,
+    pub name: String,
+    pub definition: String,
+}
+
+#[derive(Query)]
 #[query(sql = "triggers", row = TriggerRow)]
 pub struct Triggers {
     pub schema: String,

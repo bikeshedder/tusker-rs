@@ -5,8 +5,8 @@ use itertools::Itertools;
 use crate::diff::{diff, ChangeType, Diff, DiffSql};
 
 use super::{
-    constraint::Constraint, domain::Domain, extension::Extension, r#enum::Enum, routine::Routine,
-    sequence::Sequence, table::Table, trigger::Trigger, view::View,
+    constraint::Constraint, domain::Domain, extension::Extension, index::Index, r#enum::Enum,
+    routine::Routine, sequence::Sequence, table::Table, trigger::Trigger, view::View,
 };
 
 #[derive(Debug, Default, Eq, PartialEq)]
@@ -16,6 +16,7 @@ pub struct Schema {
     pub domains: HashMap<String, Domain>,
     pub sequences: HashMap<String, Sequence>,
     pub extensions: HashMap<String, Extension>,
+    pub indexes: HashMap<String, Index>,
     pub tables: HashMap<String, Table>,
     pub views: HashMap<String, View>,
     pub routines: HashMap<(String, String), Routine>,
@@ -51,6 +52,11 @@ impl Schema {
             &e.name
         })
     }
+    pub fn diff_indexes<'a>(&'a self, other: &'a Self) -> Diff<'a, Index> {
+        diff(self.indexes.values(), other.indexes.values(), |index| {
+            &index.name
+        })
+    }
     pub fn diff_constraints<'a>(&'a self, other: &'a Self) -> Diff<'a, Constraint> {
         diff(self.constraints.values(), other.constraints.values(), |c| {
             (&c.table, &c.name)
@@ -82,6 +88,7 @@ impl DiffSql for Diff<'_, Schema> {
             v.extend(a.diff_extensions(b).sql());
             v.extend(a.diff_routines(b).sql());
             v.extend(a.diff_tables(b).sql());
+            v.extend(a.diff_indexes(b).sql());
             v.extend(a.diff_constraints(b).sql());
         }
         if !self.b_only.is_empty() {

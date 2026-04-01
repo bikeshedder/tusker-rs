@@ -87,6 +87,18 @@ pub async fn inspect(client: &Client) -> Result<Inspection> {
             let extension = Extension::from(row);
             schema.extensions.insert(extension.name.clone(), extension);
         }
+        // Indexes
+        let rows = tusker_query::query(
+            client,
+            queries::Indexes {
+                schema: schema.name.clone(),
+            },
+        )
+        .await?;
+        for row in rows {
+            let index = models::index::Index::from(row);
+            schema.indexes.insert(index.name.clone(), index);
+        }
         // Tables
         let rows = tusker_query::query(
             client,
