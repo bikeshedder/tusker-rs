@@ -61,9 +61,9 @@ pub enum ChangeType {
     CreateExtension,
     CreateSequence,
     CreateType,
+    CreateRoutine,
     CreateTable,
     CreateColumn,
-    CreateRoutine,
     CreateConstraint(ConstraintType),
     CreateTrigger,
 }
