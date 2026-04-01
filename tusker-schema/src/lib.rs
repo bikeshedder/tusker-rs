@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use anyhow::Result;
 use diff::{diff, Diff};
 use models::{
-    constraint::Constraint, domain::Domain, r#enum::Enum, routine::Routine, schema::Schema,
-    sequence::Sequence, table::Table, trigger::Trigger, view::View,
+    constraint::Constraint, domain::Domain, extension::Extension, r#enum::Enum, routine::Routine,
+    schema::Schema, sequence::Sequence, table::Table, trigger::Trigger, view::View,
 };
 use queries::Relkind;
 use tokio_postgres::Client;
@@ -74,6 +74,18 @@ pub async fn inspect(client: &Client) -> Result<Inspection> {
         for row in rows {
             let sequence = Sequence::from(row);
             schema.sequences.insert(sequence.name.clone(), sequence);
+        }
+        // Extensions
+        let rows = tusker_query::query(
+            client,
+            queries::Extensions {
+                schema: schema.name.clone(),
+            },
+        )
+        .await?;
+        for row in rows {
+            let extension = Extension::from(row);
+            schema.extensions.insert(extension.name.clone(), extension);
         }
         // Tables
         let rows = tusker_query::query(

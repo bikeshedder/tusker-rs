@@ -198,6 +198,19 @@ pub struct SequenceRow {
 }
 
 #[derive(Query)]
+#[query(sql = "extensions", row = ExtensionRow)]
+pub struct Extensions {
+    pub schema: String,
+}
+
+#[derive(Debug, FromRow)]
+pub struct ExtensionRow {
+    pub schema: String,
+    pub name: String,
+    pub version: String,
+}
+
+#[derive(Query)]
 #[query(sql = "triggers", row = TriggerRow)]
 pub struct Triggers {
     pub schema: String,

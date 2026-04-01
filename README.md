@@ -23,7 +23,7 @@ a complete rewrite in Rust. This project is in a very early stage.
   - [ ] deps
   - [x] domains
   - [x] enums (safe additive changes only)
-  - [ ] extensions
+  - [x] extensions
   - [x] functions (only normal functions)
   - [x] indexes
   - [ ] privileges
