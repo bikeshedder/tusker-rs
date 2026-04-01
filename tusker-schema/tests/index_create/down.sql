@@ -1,7 +1,7 @@
-DROP INDEX "public"."employees_tenant_id_idx";
+ALTER TABLE "public"."employees" DROP CONSTRAINT "employees_pkey";
 
 DROP INDEX "public"."employees_email_uidx";
 
-ALTER TABLE "public"."employees" DROP CONSTRAINT "employees_pkey";
+DROP INDEX "public"."employees_tenant_id_idx";
 
 DROP TABLE "public"."employees";

@@ -32,45 +32,91 @@ impl Schema {
         }
     }
     pub fn diff_tables<'a>(&'a self, other: &'a Self) -> Diff<'a, Table> {
-        diff(self.tables.values(), other.tables.values(), |table| {
-            &table.name
-        })
+        diff(
+            self.tables.values().sorted_by(|a, b| a.name.cmp(&b.name)),
+            other.tables.values().sorted_by(|a, b| a.name.cmp(&b.name)),
+            |table| &table.name,
+        )
     }
     pub fn diff_enums<'a>(&'a self, other: &'a Self) -> Diff<'a, Enum> {
-        diff(self.enums.values(), other.enums.values(), |e| &e.name)
+        diff(
+            self.enums.values().sorted_by(|a, b| a.name.cmp(&b.name)),
+            other.enums.values().sorted_by(|a, b| a.name.cmp(&b.name)),
+            |e| &e.name,
+        )
     }
     pub fn diff_domains<'a>(&'a self, other: &'a Self) -> Diff<'a, Domain> {
-        diff(self.domains.values(), other.domains.values(), |d| &d.name)
+        diff(
+            self.domains.values().sorted_by(|a, b| a.name.cmp(&b.name)),
+            other.domains.values().sorted_by(|a, b| a.name.cmp(&b.name)),
+            |d| &d.name,
+        )
     }
     pub fn diff_sequences<'a>(&'a self, other: &'a Self) -> Diff<'a, Sequence> {
-        diff(self.sequences.values(), other.sequences.values(), |s| {
-            &s.name
-        })
+        diff(
+            self.sequences
+                .values()
+                .sorted_by(|a, b| a.name.cmp(&b.name)),
+            other
+                .sequences
+                .values()
+                .sorted_by(|a, b| a.name.cmp(&b.name)),
+            |s| &s.name,
+        )
     }
     pub fn diff_extensions<'a>(&'a self, other: &'a Self) -> Diff<'a, Extension> {
-        diff(self.extensions.values(), other.extensions.values(), |e| {
-            &e.name
-        })
+        diff(
+            self.extensions
+                .values()
+                .sorted_by(|a, b| a.name.cmp(&b.name)),
+            other
+                .extensions
+                .values()
+                .sorted_by(|a, b| a.name.cmp(&b.name)),
+            |e| &e.name,
+        )
     }
     pub fn diff_indexes<'a>(&'a self, other: &'a Self) -> Diff<'a, Index> {
-        diff(self.indexes.values(), other.indexes.values(), |index| {
-            &index.name
-        })
+        diff(
+            self.indexes.values().sorted_by(|a, b| a.name.cmp(&b.name)),
+            other.indexes.values().sorted_by(|a, b| a.name.cmp(&b.name)),
+            |index| &index.name,
+        )
     }
     pub fn diff_constraints<'a>(&'a self, other: &'a Self) -> Diff<'a, Constraint> {
-        diff(self.constraints.values(), other.constraints.values(), |c| {
-            (&c.table, &c.name)
-        })
+        diff(
+            self.constraints
+                .values()
+                .sorted_by(|a, b| (&a.table, &a.name).cmp(&(&b.table, &b.name))),
+            other
+                .constraints
+                .values()
+                .sorted_by(|a, b| (&a.table, &a.name).cmp(&(&b.table, &b.name))),
+            |c| (&c.table, &c.name),
+        )
     }
     pub fn diff_routines<'a>(&'a self, other: &'a Self) -> Diff<'a, Routine> {
-        diff(self.routines.values(), other.routines.values(), |f| {
-            (&f.name, &f.identity_arguments)
-        })
+        diff(
+            self.routines.values().sorted_by(|a, b| {
+                (&a.name, &a.identity_arguments).cmp(&(&b.name, &b.identity_arguments))
+            }),
+            other.routines.values().sorted_by(|a, b| {
+                (&a.name, &a.identity_arguments).cmp(&(&b.name, &b.identity_arguments))
+            }),
+            |f| (&f.name, &f.identity_arguments),
+        )
     }
     pub fn diff_triggers<'a>(&'a self, other: &'a Self) -> Diff<'a, Trigger> {
-        diff(self.triggers.values(), other.triggers.values(), |t| {
-            (&t.table_name, &t.name)
-        })
+        diff(
+            self.triggers
+                .values()
+                .sorted_by(|a, b| (&a.table_name, &a.name).cmp(&(&b.table_name, &b.name))),
+            other
+                .triggers
+                .values()
+                .sorted_by(|a, b| (&a.table_name, &a.name).cmp(&(&b.table_name, &b.name))),
+            |t| (&t.table_name, &t.name),
+        )
     }
 }
 

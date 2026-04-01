@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 use diff::{diff, Diff};
+use itertools::Itertools;
 use models::{
     constraint::Constraint, domain::Domain, extension::Extension, r#enum::Enum, routine::Routine,
     schema::Schema, sequence::Sequence, table::Table, trigger::Trigger, view::View,
@@ -28,9 +29,11 @@ impl Inspection {
         }
     }
     pub fn diff<'a>(&'a self, other: &'a Self) -> Diff<'a, Schema> {
-        diff(self.schemas.values(), other.schemas.values(), |schema| {
-            &schema.name
-        })
+        diff(
+            self.schemas.values().sorted_by(|a, b| a.name.cmp(&b.name)),
+            other.schemas.values().sorted_by(|a, b| a.name.cmp(&b.name)),
+            |schema| &schema.name,
+        )
     }
 }
 
