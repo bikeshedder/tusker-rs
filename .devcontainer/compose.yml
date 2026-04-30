@@ -25,7 +25,7 @@ services:
     # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
     # (Adding the "ports" property to this file will not forward from a Codespace.)
 
-  postgres:
+  postgres18:
     image: postgres:18-alpine
     restart: unless-stopped
     volumes:
@@ -34,9 +34,28 @@ services:
         # Ensure that the variables in .env match the same variables in devcontainer.json
         - .env
 
+  postgres17:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres17-data:/var/lib/postgresql
+    env_file:
+        # Ensure that the variables in .env match the same variables in devcontainer.json
+        - .env
+
+  postgres16:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres16-data:/var/lib/postgresql
+    env_file:
+        # Ensure that the variables in .env match the same variables in devcontainer.json
+        - .env
 
     # Add "forwardPorts": ["5432"] to **devcontainer.json** to forward PostgreSQL locally.
     # (Adding the "ports" property to this file will not forward from a Codespace.)
 
 volumes:
   postgres18-data:
+  postgres17-data:
+  postgres16-data:
