@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "tusker-v*"
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  RUST_VERSION: "1.96"
+  TARGET: x86_64-unknown-linux-musl
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install release tooling
+        run: sudo apt-get update && sudo apt-get install --yes musl-tools buildah
+
+      - name: Set up Rust
+        run: rustup update ${{ env.RUST_VERSION }} && rustup default ${{ env.RUST_VERSION }}
+
+      - name: Add Rust target
+        run: rustup target add ${{ env.TARGET }}
+
+      - name: Build release binary
+        run: cargo build --locked --release -p tusker --target ${{ env.TARGET }}
+
+      - name: Package release artifacts
+        run: |
+          mkdir -p dist
+          VERSION="${GITHUB_REF_NAME#tusker-v}"
+          ASSET_BASENAME="tusker-${VERSION}-${TARGET}"
+          install -Dm755 "target/${TARGET}/release/tusker" "dist/${ASSET_BASENAME}/tusker"
+          tar -C dist -czf "dist/${ASSET_BASENAME}.tar.gz" "${ASSET_BASENAME}"
+          sha256sum "dist/${ASSET_BASENAME}.tar.gz" > "dist/${ASSET_BASENAME}.tar.gz.sha256"
+
+      - name: Create GitHub release and upload assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.tar.gz
+            dist/*.sha256
+          generate_release_notes: true
+
+      - name: Log in to GitHub Container Registry
+        run: buildah login --username "${{ github.actor }}" --password "${{ secrets.GITHUB_TOKEN }}" ${{ env.REGISTRY }}
+
+      - name: Assemble and push OCI image
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          VERSION="${GITHUB_REF_NAME#tusker-v}"
+          LOCAL_IMAGE="tusker-oci:${VERSION}"
+          REGISTRY_IMAGE="${REGISTRY}/${IMAGE_NAME}"
+
+          mkdir -p dist/image-root
+          install -Dm755 "target/${TARGET}/release/tusker" "dist/image-root/tusker"
+
+          ctr="$(buildah from scratch)"
+          trap 'buildah rm "$ctr"' EXIT
+
+          buildah add "$ctr" dist/image-root/tusker /tusker
+          buildah config \
+            --entrypoint '["/tusker"]' \
+            --label "org.opencontainers.image.source=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" \
+            --label "org.opencontainers.image.version=${VERSION}" \
+            "$ctr"
+
+          buildah commit --format oci "$ctr" "$LOCAL_IMAGE"
+          buildah push "$LOCAL_IMAGE" "docker://${REGISTRY_IMAGE}:${VERSION}"
+          buildah push "$LOCAL_IMAGE" "docker://${REGISTRY_IMAGE}:${GITHUB_REF_NAME}"

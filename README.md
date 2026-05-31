@@ -7,6 +7,27 @@ The project contains the core building blocks behind the `tusker` CLI: a
 schema diff engine, an embeddable migration runner, and a small query layer
 with derive-based SQL bindings.
 
+## Installation
+
+Install from crates.io:
+
+```bash
+cargo install tusker
+```
+
+Download a prebuilt release binary from the GitHub Releases page:
+
+<https://github.com/bikeshedder/tusker/releases>
+
+Container images for tagged `tusker` releases are published to
+`ghcr.io/bikeshedder/tusker`.
+
+For example:
+
+```bash
+docker run --rm ghcr.io/bikeshedder/tusker:0.6.1 --help
+```
+
 ## Important Crates
 
 - [`tusker`](crates/tusker/): the main CLI crate for schema diffing,
