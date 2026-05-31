@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: rustup update nightly
-      - run: rustup update 1.94 && rustup default 1.94
+      - run: rustup update 1.96 && rustup default 1.96
       - run: cargo +nightly update -Z direct-minimal-versions
       - run: cargo check --all-features
 
@@ -43,7 +43,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - run: rustup update 1.94 && rustup default 1.94
+      - run: rustup update 1.96 && rustup default 1.96
       - uses: actions/checkout@v4
       - name: Build
         run: cargo build --all-features --workspace
