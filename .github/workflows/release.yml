@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - "tusker-v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to publish
+        required: true
 
 permissions:
   contents: write
@@ -14,6 +19,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   RUST_VERSION: "1.96"
   TARGET: x86_64-unknown-linux-musl
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
 
 jobs:
   release:
@@ -23,6 +29,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: Install release tooling
         run: sudo apt-get update && sudo apt-get install --yes musl-tools buildah
@@ -39,7 +47,7 @@ jobs:
       - name: Package release artifacts
         run: |
           mkdir -p dist
-          VERSION="${GITHUB_REF_NAME#tusker-v}"
+          VERSION="${RELEASE_TAG#tusker-v}"
           ASSET_BASENAME="tusker-${VERSION}-${TARGET}"
           install -Dm755 "target/${TARGET}/release/tusker" "dist/${ASSET_BASENAME}/tusker"
           tar -C dist -czf "dist/${ASSET_BASENAME}.tar.gz" "${ASSET_BASENAME}"
@@ -48,6 +56,7 @@ jobs:
       - name: Create GitHub release and upload assets
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ env.RELEASE_TAG }}
           files: |
             dist/*.tar.gz
             dist/*.sha256
@@ -61,7 +70,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          VERSION="${GITHUB_REF_NAME#tusker-v}"
+          VERSION="${RELEASE_TAG#tusker-v}"
           LOCAL_IMAGE="tusker-oci:${VERSION}"
           REGISTRY_IMAGE="${REGISTRY}/${IMAGE_NAME}"
 
@@ -80,4 +89,4 @@ jobs:
 
           buildah commit --format oci "$ctr" "$LOCAL_IMAGE"
           buildah push "$LOCAL_IMAGE" "docker://${REGISTRY_IMAGE}:${VERSION}"
-          buildah push "$LOCAL_IMAGE" "docker://${REGISTRY_IMAGE}:${GITHUB_REF_NAME}"
+          buildah push "$LOCAL_IMAGE" "docker://${REGISTRY_IMAGE}:${RELEASE_TAG}"
