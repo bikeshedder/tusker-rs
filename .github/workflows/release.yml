@@ -89,4 +89,3 @@ jobs:
 
           buildah commit --format oci "$ctr" "$LOCAL_IMAGE"
           buildah push "$LOCAL_IMAGE" "docker://${REGISTRY_IMAGE}:${VERSION}"
-          buildah push "$LOCAL_IMAGE" "docker://${REGISTRY_IMAGE}:${RELEASE_TAG}"
