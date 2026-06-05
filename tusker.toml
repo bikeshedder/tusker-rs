@@ -1,5 +1,5 @@
 [database]
-host = "postgres"
+host = "postgres18"
 user = "tusker"
 password = "tusker123"
 dbname = "tusker"
