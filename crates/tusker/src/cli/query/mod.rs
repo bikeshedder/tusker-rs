@@ -3,8 +3,11 @@ use std::{ffi::OsString, fs, io::ErrorKind, path::Path};
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use sha2::{Digest, Sha512};
-use tokio_postgres::Client;
-use tusker_query_models::Column;
+use tokio_postgres::{
+    types::{Kind, Type},
+    Client,
+};
+use tusker_query_models::{Column, CompositeField, SqlType};
 
 use crate::config::Config;
 
@@ -88,7 +91,7 @@ async fn inspect_query_sql(client: &Client, sql: &str) -> Result<tusker_query_mo
     for c in stmt.columns() {
         columns.push(Column {
             name: c.name().to_owned(),
-            r#type: c.type_().to_string(),
+            r#type: inspect_type(c.type_()),
             notnull: if let (Some(table_oid), Some(column_id)) = (c.table_oid(), c.column_id()) {
                 Some(is_nullable(client, table_oid, column_id).await?)
             } else {
@@ -99,9 +102,29 @@ async fn inspect_query_sql(client: &Client, sql: &str) -> Result<tusker_query_mo
 
     Ok(tusker_query_models::Query {
         checksum: Vec::from_iter(digest),
-        params: stmt.params().iter().map(|p| p.name().to_owned()).collect(),
+        params: stmt.params().iter().map(inspect_type).collect(),
         columns,
     })
+}
+
+fn inspect_type(ty: &Type) -> SqlType {
+    match ty.kind() {
+        Kind::Array(element) => SqlType::Array {
+            element: Box::new(inspect_type(element)),
+        },
+        Kind::Composite(fields) => SqlType::Composite {
+            schema: ty.schema().to_owned(),
+            name: ty.name().to_owned(),
+            fields: fields
+                .iter()
+                .map(|field| CompositeField {
+                    name: field.name().to_owned(),
+                    r#type: inspect_type(field.type_()),
+                })
+                .collect(),
+        },
+        _ => SqlType::scalar(ty.schema(), ty.name()),
+    }
 }
 
 fn write_query_types(output: &Path, query: &tusker_query_models::Query) -> Result<WriteStatus> {

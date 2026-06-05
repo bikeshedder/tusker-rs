@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -euox pipefail
 
 postgres_user="${POSTGRES_USER:-tusker}"
 postgres_password="${POSTGRES_PASSWORD:-tusker123}"

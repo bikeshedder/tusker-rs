@@ -8,6 +8,7 @@ This crate provides:
 
 - `#[derive(Query)]` for binding Rust structs to SQL files in `db/queries/`
 - `#[derive(FromRow)]` for decoding rows into Rust structs
+- `#[derive(QueryComposite)]` for checked PostgreSQL composite type metadata
 - `query()` and `query_one()` helpers on top of `tokio-postgres`
 - metadata-driven query checks similar in spirit to SQLx offline metadata
 
@@ -141,10 +142,18 @@ Examples:
 - `timestamptz` -> `time::OffsetDateTime` with `with-time-0_3`
 - `uuid` -> `uuid::Uuid` with `with-uuid-1`
 - `json` / `jsonb` -> `serde_json::Value` or `tusker_query::types::Json<T>` with `with-serde_json-1`
+- arrays -> `Vec<T>`, `&[T]`, `Box<[T]>`, and nullable outer `Option<...>` for bind parameters; `Vec<T>` and nullable `Option<Vec<T>>` for rows
+- composites -> Rust structs that derive `QueryComposite` and implement the matching `tokio-postgres` / `postgres-types` `ToSql` and/or `FromSql` traits
 
 This mapping is intentionally conservative. If query metadata references a type
 that is not supported yet, the derive fails with a compile error instead of
 quietly accepting a potentially wrong mapping.
+
+Composite checks are structural. Tusker validates the PostgreSQL composite type
+name, field names, and field types from sidecar metadata against the Rust type
+metadata emitted by `QueryComposite`. Runtime encoding and decoding still belong
+to `tokio-postgres`, so composite structs should also derive or implement the
+appropriate `postgres-types` traits.
 
 ## Limitations
 

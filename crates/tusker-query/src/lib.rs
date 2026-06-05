@@ -23,7 +23,11 @@
 
 use tokio_postgres::{types::ToSql, Error, Row, Statement};
 
-pub use tusker_query_derive::Query;
+#[doc(hidden)]
+#[allow(unused_extern_crates)]
+extern crate self as tusker_query;
+
+pub use tusker_query_derive::{Query, QueryComposite};
 
 /// Marker traits and PostgreSQL type markers used by checked query validation.
 pub mod types;

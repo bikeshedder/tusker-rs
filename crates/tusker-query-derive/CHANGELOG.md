@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `#[derive(QueryComposite)]` for generating structural metadata used to check PostgreSQL composite parameter and row types
+- Support checked query metadata for PostgreSQL array and composite types
+
 ## [0.1.1] - 2026-05-23
 
 ### Changed

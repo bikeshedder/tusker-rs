@@ -29,7 +29,11 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::{quote, ToTokens};
 use sha2::{Digest, Sha512};
 use syn::{Data, DeriveInput};
-use tusker_query_models::{Column, Query as QueryMetadata};
+use tusker_query_models::{Column, Query as QueryMetadata, SqlType};
+
+mod case;
+mod composites;
+mod overrides;
 
 #[derive(FromDeriveInput)]
 #[darling(attributes(query), supports(struct_named))]
@@ -294,7 +298,20 @@ fn build_row_assertion(
     })
 }
 
-fn sql_type_marker(sql_type: &str) -> Result<TokenStream2, String> {
+fn sql_type_marker(sql_type: &SqlType) -> Result<TokenStream2, String> {
+    match sql_type {
+        SqlType::Array { element } => {
+            let element = sql_type_marker(element)?;
+            Ok(quote!(::tusker_query::types::PgArray<#element>))
+        }
+        SqlType::Composite { name, fields, .. } => {
+            composites::sql_type_marker(name, fields, sql_type_marker)
+        }
+        SqlType::Scalar { name, .. } => scalar_sql_type_marker(name),
+    }
+}
+
+fn scalar_sql_type_marker(sql_type: &str) -> Result<TokenStream2, String> {
     match sql_type {
         "bool" => Ok(quote!(::tusker_query::types::PgBool)),
         "char" => Ok(quote!(::tusker_query::types::PgI8)),
@@ -315,6 +332,16 @@ fn sql_type_marker(sql_type: &str) -> Result<TokenStream2, String> {
         "uuid" => Ok(quote!(::tusker_query::types::PgUuid)),
         "json" | "jsonb" => Ok(quote!(::tusker_query::types::PgJson)),
         other => Err(format!("`{other}` is not supported yet")),
+    }
+}
+
+#[proc_macro_derive(QueryComposite, attributes(postgres))]
+/// Derives structural `tusker_query` metadata for PostgreSQL composite types.
+pub fn derive_query_composite(input: TokenStream) -> TokenStream {
+    let ast: DeriveInput = syn::parse(input).unwrap();
+    match composites::expand_query_composite(&ast) {
+        Ok(tokens) => tokens.into(),
+        Err(err) => err.to_compile_error().into(),
     }
 }
 

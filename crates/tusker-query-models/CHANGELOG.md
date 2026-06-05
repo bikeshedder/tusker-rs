@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add structured SQL type metadata for PostgreSQL array and composite parameter and result column types
+- Preserve compact string serialization for scalar parameter and column types
+
 ## [0.1.1] - 2026-05-23
 
 ### Changed

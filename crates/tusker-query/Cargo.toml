@@ -23,3 +23,6 @@ tokio-postgres = "0.7.12"
 tusker-query-derive = { version = "0.1.0", path = "../tusker-query-derive" }
 uuid_1 = { package = "uuid", version = "1", optional = true }
 serde_json_1 = { package = "serde_json", version = "1", optional = true }
+
+[dev-dependencies]
+postgres-types = { version = "0.2.13", features = ["derive"] }

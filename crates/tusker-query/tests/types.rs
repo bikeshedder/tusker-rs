@@ -1,0 +1,72 @@
+use postgres_types::{FromSql, ToSql};
+use tusker_query::{
+    types::{
+        PgArray, PgComposite, PgF64, PgField, PgI32, PgString, QueryMaybeNullableRowTyped,
+        QueryNullableRowTyped, QueryParamTyped, QueryRowTyped,
+    },
+    QueryComposite,
+};
+
+fn assert_array_param<T: QueryParamTyped<PgArray<PgI32>>>() {}
+fn assert_array_row<T: QueryRowTyped<PgArray<PgI32>>>() {}
+fn assert_nullable_array_row<T: QueryNullableRowTyped<PgArray<PgI32>>>() {}
+fn assert_maybe_nullable_array_row<T: QueryMaybeNullableRowTyped<PgArray<PgI32>>>() {}
+
+#[test]
+fn arrays_are_supported_for_checked_params_and_rows() {
+    assert_array_param::<Vec<i32>>();
+    assert_array_param::<&[i32]>();
+    assert_array_param::<Box<[i32]>>();
+    assert_array_param::<Option<Vec<i32>>>();
+    assert_array_param::<Option<&[i32]>>();
+    assert_array_param::<Option<Box<[i32]>>>();
+    assert_array_param::<Vec<Option<i32>>>();
+
+    assert_array_row::<Vec<i32>>();
+    assert_array_row::<Vec<Option<i32>>>();
+    assert_nullable_array_row::<Option<Vec<i32>>>();
+    assert_maybe_nullable_array_row::<Vec<i32>>();
+    assert_maybe_nullable_array_row::<Option<Vec<i32>>>();
+}
+
+#[derive(Debug, FromSql, QueryComposite, ToSql)]
+#[postgres(name = "inventory_item")]
+struct InventoryItem {
+    name: String,
+    supplier_id: i32,
+    price: Option<f64>,
+}
+
+type InventoryItemSql = PgComposite<
+    { stable_name_hash("inventory_item") },
+    (
+        PgField<{ stable_name_hash("name") }, PgString>,
+        PgField<{ stable_name_hash("supplier_id") }, PgI32>,
+        PgField<{ stable_name_hash("price") }, PgF64>,
+    ),
+>;
+
+const fn stable_name_hash(name: &str) -> u64 {
+    let mut hash = 0xcbf29ce484222325u64;
+    let bytes = name.as_bytes();
+    let mut idx = 0;
+    while idx < bytes.len() {
+        hash ^= bytes[idx] as u64;
+        hash = hash.wrapping_mul(0x100000001b3);
+        idx += 1;
+    }
+    hash
+}
+
+fn assert_composite_param<T: QueryParamTyped<InventoryItemSql>>() {}
+fn assert_composite_row<T: QueryRowTyped<InventoryItemSql>>() {}
+fn assert_maybe_nullable_composite_row<T: QueryMaybeNullableRowTyped<InventoryItemSql>>() {}
+
+#[test]
+fn query_composite_derives_structural_type_checks() {
+    assert_composite_param::<InventoryItem>();
+    assert_composite_param::<Option<InventoryItem>>();
+    assert_composite_row::<InventoryItem>();
+    assert_maybe_nullable_composite_row::<InventoryItem>();
+    assert_maybe_nullable_composite_row::<Option<InventoryItem>>();
+}

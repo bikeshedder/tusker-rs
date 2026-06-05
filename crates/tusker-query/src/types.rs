@@ -1,4 +1,4 @@
-use std::{collections::HashMap, net::IpAddr, time::SystemTime};
+use std::{collections::HashMap, marker::PhantomData, net::IpAddr, time::SystemTime};
 
 #[cfg(feature = "with-serde_json-1")]
 pub use tokio_postgres::types::Json;
@@ -14,6 +14,24 @@ pub trait QueryRowTyped<T> {}
 pub trait QueryNullableRowTyped<T> {}
 /// Marker trait for Rust types accepted when query nullability is best-effort.
 pub trait QueryMaybeNullableRowTyped<T> {}
+
+/// Marker for PostgreSQL array types.
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
+pub struct PgArray<T>(PhantomData<T>);
+
+/// Marker for PostgreSQL composite types.
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
+pub struct PgComposite<const NAME: u64, Fields>(PhantomData<Fields>);
+
+/// Marker for one PostgreSQL composite field.
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
+pub struct PgField<const NAME: u64, T>(PhantomData<T>);
+
+/// Marker trait implemented by `QueryComposite` for composite bind parameters.
+pub trait QueryCompositeParamTyped<const NAME: u64, Fields> {}
+
+/// Marker trait implemented by `QueryComposite` for composite result values.
+pub trait QueryCompositeRowTyped<const NAME: u64, Fields> {}
 
 macro_rules! marker_types {
     ($( $(#[$meta:meta])* $name:ident; )+) => {
@@ -80,6 +98,40 @@ impl QueryParamTyped<PgString> for &str {}
 impl QueryParamTyped<PgString> for Option<&str> {}
 impl QueryParamTyped<PgBytea> for &[u8] {}
 impl QueryParamTyped<PgBytea> for Option<&[u8]> {}
+
+impl<T, Sql> QueryParamTyped<PgArray<Sql>> for Vec<T> where T: QueryParamTyped<Sql> {}
+impl<T, Sql> QueryParamTyped<PgArray<Sql>> for &[T] where T: QueryParamTyped<Sql> {}
+impl<T, Sql> QueryParamTyped<PgArray<Sql>> for Box<[T]> where T: QueryParamTyped<Sql> {}
+impl<T, Sql> QueryParamTyped<PgArray<Sql>> for Option<Vec<T>> where T: QueryParamTyped<Sql> {}
+impl<T, Sql> QueryParamTyped<PgArray<Sql>> for Option<&[T]> where T: QueryParamTyped<Sql> {}
+impl<T, Sql> QueryParamTyped<PgArray<Sql>> for Option<Box<[T]>> where T: QueryParamTyped<Sql> {}
+
+impl<T, Sql> QueryRowTyped<PgArray<Sql>> for Vec<T> where T: QueryMaybeNullableRowTyped<Sql> {}
+impl<T, Sql> QueryNullableRowTyped<PgArray<Sql>> for Option<Vec<T>> where
+    T: QueryMaybeNullableRowTyped<Sql>
+{
+}
+impl<T, Sql> QueryMaybeNullableRowTyped<PgArray<Sql>> for Vec<T> where
+    T: QueryMaybeNullableRowTyped<Sql>
+{
+}
+impl<T, Sql> QueryMaybeNullableRowTyped<PgArray<Sql>> for Option<Vec<T>> where
+    T: QueryMaybeNullableRowTyped<Sql>
+{
+}
+
+impl<T, const NAME: u64, Fields> QueryParamTyped<PgComposite<NAME, Fields>> for Option<T> where
+    T: QueryParamTyped<PgComposite<NAME, Fields>>
+{
+}
+impl<T, const NAME: u64, Fields> QueryNullableRowTyped<PgComposite<NAME, Fields>> for Option<T> where
+    T: QueryRowTyped<PgComposite<NAME, Fields>>
+{
+}
+impl<T, const NAME: u64, Fields> QueryMaybeNullableRowTyped<PgComposite<NAME, Fields>> for Option<T> where
+    T: QueryRowTyped<PgComposite<NAME, Fields>>
+{
+}
 
 impl_query_types! {
     PgBool => param: bool, row: bool;

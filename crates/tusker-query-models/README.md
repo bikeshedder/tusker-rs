@@ -9,6 +9,7 @@ files next to SQL queries, including:
 - query checksums
 - parameter PostgreSQL types
 - result column names, types, and nullability
+- structured scalar, array, and composite type metadata
 
 This crate is primarily used by `tusker-query-derive` and the tooling that
 reads or writes query metadata and type information.
