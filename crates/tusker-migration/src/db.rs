@@ -67,15 +67,59 @@ impl Database {
         &self,
         migration_file: &MigrationFile,
     ) -> Result<(), PgError> {
-        let _ = query(
-            &self.client,
-            queries::MigrationUpdate {
-                number: migration_file.number,
-                name: &migration_file.name,
-                hash: &migration_file.hash,
-            },
-        )
-        .await?;
+        self.client.batch_execute("BEGIN").await?;
+        let result: Result<(), PgError> = async {
+            let timestamp: OffsetDateTime = self
+                .client
+                .query_one("SELECT clock_timestamp()", &[])
+                .await?
+                .get(0);
+
+            let _ = self
+                .client
+                .execute(
+                    "
+                    UPDATE migration
+                    SET validity = tstzrange(lower(validity), $2::timestamptz)
+                    WHERE migration.number = $1
+                      AND upper_inf(validity)
+                    ",
+                    &[&migration_file.number, &timestamp],
+                )
+                .await?;
+
+            let _ = self
+                .client
+                .execute(
+                    "
+                    INSERT INTO migration (number, name, hash, validity, operation)
+                    VALUES (
+                        $1,
+                        $2,
+                        $3,
+                        tstzrange($4::timestamptz, NULL::timestamptz),
+                        'update'
+                    )
+                    ",
+                    &[
+                        &migration_file.number,
+                        &migration_file.name,
+                        &migration_file.hash,
+                        &timestamp,
+                    ],
+                )
+                .await?;
+
+            Ok(())
+        }
+        .await;
+
+        if let Err(error) = result {
+            let _ = self.client.batch_execute("ROLLBACK").await;
+            return Err(error);
+        }
+
+        self.client.batch_execute("COMMIT").await?;
         Ok(())
     }
     pub(crate) async fn apply_migration(
@@ -112,7 +156,59 @@ impl Database {
         .map(|_| ())
     }
     pub(crate) async fn remove_migration(&self, number: i32) -> Result<(), PgError> {
-        let _ = query(&self.client, queries::MigrationDelete { number }).await?;
+        self.client.batch_execute("BEGIN").await?;
+        let result: Result<(), PgError> = async {
+            let timestamp: OffsetDateTime = self
+                .client
+                .query_one("SELECT clock_timestamp()", &[])
+                .await?
+                .get(0);
+
+            let closed = self
+                .client
+                .query_opt(
+                    "
+                    UPDATE migration
+                    SET validity = tstzrange(lower(validity), $2::timestamptz)
+                    WHERE migration.number = $1
+                      AND upper_inf(validity)
+                    RETURNING name, hash
+                    ",
+                    &[&number, &timestamp],
+                )
+                .await?;
+
+            if let Some(closed) = closed {
+                let name: String = closed.get(0);
+                let hash: Vec<u8> = closed.get(1);
+                let _ = self
+                    .client
+                    .execute(
+                        "
+                        INSERT INTO migration (number, name, hash, validity, operation)
+                        VALUES (
+                            $1,
+                            $2,
+                            $3,
+                            tstzrange($4::timestamptz, NULL::timestamptz),
+                            'delete'
+                        )
+                        ",
+                        &[&number, &name, &hash, &timestamp],
+                    )
+                    .await?;
+            }
+
+            Ok(())
+        }
+        .await;
+
+        if let Err(error) = result {
+            let _ = self.client.batch_execute("ROLLBACK").await;
+            return Err(error);
+        }
+
+        self.client.batch_execute("COMMIT").await?;
         Ok(())
     }
 }

@@ -43,16 +43,3 @@ pub(crate) struct MigrationFake<'a> {
     pub(crate) hash: &'a [u8],
 }
 
-#[derive(Debug, Query)]
-#[query(sql = "migration_update", row = NoRow)]
-pub(crate) struct MigrationUpdate<'a> {
-    pub(crate) number: i32,
-    pub(crate) name: &'a str,
-    pub(crate) hash: &'a [u8],
-}
-
-#[derive(Copy, Clone, Debug, Query)]
-#[query(sql = "migration_delete", row = NoRow)]
-pub(crate) struct MigrationDelete {
-    pub(crate) number: i32,
-}

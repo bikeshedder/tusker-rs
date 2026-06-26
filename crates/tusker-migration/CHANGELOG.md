@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Avoid exclusion-constraint conflicts when fixing or deleting migrations by
+  splitting validity-range close and ledger insert into explicit transactional
+  statements with one shared database timestamp.
+
 ## [0.1.1] - 2026-05-23
 
 ### Changed
