@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Align `tusker schema check` with `tusker schema diff` by basing the check
+  result on actionable diff SQL output instead of strict in-memory inspection
+  equality.
+
 ## [0.6.1] - 2026-05-23
 
 ### Fixed

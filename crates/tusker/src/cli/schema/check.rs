@@ -2,6 +2,7 @@ use std::process::exit;
 
 use anyhow::Result;
 use clap::Parser;
+use tusker_schema::{diff::DiffSql, models::schema::join_sql};
 
 use crate::{config::Config, db::DiffDatabase};
 
@@ -32,7 +33,16 @@ pub(crate) async fn cmd(cfg: &Config, args: &CheckArgs) -> Result<()> {
     let from = inspect_backend(cfg, &mut db, args.from).await?;
     let to = inspect_backend(cfg, &mut db, args.to).await?;
     db.drop().await?;
-    if from == to {
+
+    let diff = from.diff(&to);
+    let has_schema_add_drop = !diff.a_only.is_empty() || !diff.b_only.is_empty();
+    let has_changes = if has_schema_add_drop {
+        true
+    } else {
+        !join_sql(diff.sql()).trim().is_empty()
+    };
+
+    if !has_changes {
         println!("Schemas are identical");
         Ok(())
     } else {
