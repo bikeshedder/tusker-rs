@@ -62,7 +62,11 @@ mod tests {
 
     use tusker_schema::{
         Inspection,
-        models::{r#enum::Enum, schema::Schema},
+        models::{
+            domain::{Domain, DomainConstraint},
+            r#enum::Enum,
+            schema::Schema,
+        },
     };
 
     use super::has_actionable_changes;
@@ -115,5 +119,57 @@ mod tests {
         let to = inspection_with_schema(to_schema);
 
         assert!(has_actionable_changes(&from, &to));
+    }
+
+    #[test]
+    fn ignores_non_actionable_non_enum_order_only_differences() {
+        let mut from_schema = Schema::new("public");
+        let _ = from_schema.domains.insert(
+            "positive_int".into(),
+            Domain {
+                schema: "public".into(),
+                name: "positive_int".into(),
+                base_type: "integer".into(),
+                default: None,
+                not_null: false,
+                constraints: vec![
+                    DomainConstraint {
+                        name: "positive".into(),
+                        definition: "CHECK ((VALUE > 0))".into(),
+                    },
+                    DomainConstraint {
+                        name: "below_limit".into(),
+                        definition: "CHECK ((VALUE < 1000))".into(),
+                    },
+                ],
+            },
+        );
+
+        let mut to_schema = Schema::new("public");
+        let _ = to_schema.domains.insert(
+            "positive_int".into(),
+            Domain {
+                schema: "public".into(),
+                name: "positive_int".into(),
+                base_type: "integer".into(),
+                default: None,
+                not_null: false,
+                constraints: vec![
+                    DomainConstraint {
+                        name: "below_limit".into(),
+                        definition: "CHECK ((VALUE < 1000))".into(),
+                    },
+                    DomainConstraint {
+                        name: "positive".into(),
+                        definition: "CHECK ((VALUE > 0))".into(),
+                    },
+                ],
+            },
+        );
+
+        let from = inspection_with_schema(from_schema);
+        let to = inspection_with_schema(to_schema);
+
+        assert!(!has_actionable_changes(&from, &to));
     }
 }
