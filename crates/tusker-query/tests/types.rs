@@ -70,3 +70,34 @@ fn query_composite_derives_structural_type_checks() {
     assert_maybe_nullable_composite_row::<InventoryItem>();
     assert_maybe_nullable_composite_row::<Option<InventoryItem>>();
 }
+
+#[cfg(feature = "with-serde_json-1")]
+mod json_tests {
+    use tusker_query::types::{
+        FromSqlTyped, PgJson, QueryMaybeNullableRowTyped, QueryNullableRowTyped, QueryParamTyped,
+        QueryRowTyped,
+    };
+
+    fn assert_param<T: QueryParamTyped<PgJson>>() {}
+    fn assert_row<T: QueryRowTyped<PgJson>>() {}
+    fn assert_nullable_row<T: QueryNullableRowTyped<PgJson>>() {}
+    fn assert_maybe_nullable_row<T: QueryMaybeNullableRowTyped<PgJson>>() {}
+    fn assert_from_sql<T>()
+    where
+        T: FromSqlTyped<'static, PgJson>,
+    {
+    }
+
+    #[test]
+    fn json_wrapper_is_supported_for_checked_queries() {
+        type JsonValue = tusker_query::types::Json<String>;
+
+        assert_param::<JsonValue>();
+        assert_param::<Option<JsonValue>>();
+        assert_row::<JsonValue>();
+        assert_nullable_row::<Option<JsonValue>>();
+        assert_maybe_nullable_row::<JsonValue>();
+        assert_maybe_nullable_row::<Option<JsonValue>>();
+        assert_from_sql::<JsonValue>();
+    }
+}
