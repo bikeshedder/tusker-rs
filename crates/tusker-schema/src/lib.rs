@@ -24,7 +24,7 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use diff::{diff, Diff};
+use diff::{diff, Diff, DiffOptions, DiffSql};
 use itertools::Itertools;
 use models::{
     constraint::Constraint, domain::Domain, extension::Extension, r#enum::Enum, routine::Routine,
@@ -63,6 +63,23 @@ impl Inspection {
             other.schemas.values().sorted_by(|a, b| a.name.cmp(&b.name)),
             |schema| &schema.name,
         )
+    }
+    /// Whether the two inspections are equivalent for the purposes of
+    /// `tusker check`: there is no actionable migration between them under
+    /// `opts`. This is exactly the condition `tusker diff` uses -- `check` is
+    /// defined as "the diff is empty" -- so the two commands can never disagree
+    /// (`self` is the `from` side, `other` the `to` side).
+    ///
+    /// The schema set is compared up front because creating or dropping a whole
+    /// schema is not yet representable as a diff (see `Diff<Schema>::sql`); the
+    /// guard also keeps that path from being reached.
+    pub fn equivalent(&self, other: &Self, opts: &DiffOptions) -> bool {
+        self.schemas.len() == other.schemas.len()
+            && self
+                .schemas
+                .keys()
+                .all(|name| other.schemas.contains_key(name))
+            && self.diff(other).sql(opts).is_empty()
     }
 }
 

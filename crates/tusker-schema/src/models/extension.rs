@@ -1,5 +1,5 @@
 use crate::{
-    diff::{ChangeType, Diff, DiffSql},
+    diff::{ChangeType, Diff, DiffOptions, DiffSql},
     queries::ExtensionRow,
     sql::quote_ident,
 };
@@ -69,7 +69,7 @@ impl From<ExtensionRow> for Extension {
 }
 
 impl DiffSql for Diff<'_, Extension> {
-    fn sql(&self) -> Vec<(ChangeType, String)> {
+    fn sql(&self, _opts: &DiffOptions) -> Vec<(ChangeType, String)> {
         let mut v = Vec::new();
         for a in &self.a_only {
             v.push((ChangeType::DropExtension, a.drop_sql()));

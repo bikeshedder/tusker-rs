@@ -2,7 +2,7 @@ use itertools::Itertools;
 use thiserror::Error;
 
 use crate::{
-    diff::{diff, ChangeType, Diff, DiffSql},
+    diff::{diff, ChangeType, Diff, DiffOptions, DiffSql},
     queries::{Class, Relkind},
     sql::quote_ident,
 };
@@ -99,13 +99,13 @@ $$;\n",
 }
 
 impl DiffSql for Diff<'_, Table> {
-    fn sql(&self) -> Vec<(ChangeType, String)> {
+    fn sql(&self, opts: &DiffOptions) -> Vec<(ChangeType, String)> {
         let mut v = Vec::new();
         for a in &self.a_only {
             v.push((ChangeType::DropTable, a.drop()));
         }
         for (a, b) in &self.a_and_b {
-            let col_sql = a.diff_columns(b).sql();
+            let col_sql = a.diff_columns(b).sql(opts);
             if !col_sql.is_empty() {
                 v.push((ChangeType::AlterColumn, b.alter_sql(col_sql)));
             }

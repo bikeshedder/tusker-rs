@@ -4,7 +4,7 @@ use anyhow::anyhow;
 use postgres_types::FromSql;
 
 use crate::{
-    diff::{ChangeType, Diff, DiffSql},
+    diff::{ChangeType, Diff, DiffOptions, DiffSql},
     sql::quote_ident,
 };
 
@@ -88,7 +88,7 @@ impl<'a> FromSql<'a> for ConstraintType {
 }
 
 impl DiffSql for Diff<'_, Constraint> {
-    fn sql(&self) -> Vec<(ChangeType, String)> {
+    fn sql(&self, _opts: &DiffOptions) -> Vec<(ChangeType, String)> {
         let mut v = Vec::new();
         for a in &self.a_only {
             v.push((ChangeType::DropConstraint(Reverse(a.r#type)), a.drop_sql()));

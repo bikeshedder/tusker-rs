@@ -1,5 +1,5 @@
 use tusker_schema::{
-    diff::{ChangeType, Diff, DiffSql},
+    diff::{ChangeType, Diff, DiffOptions, DiffSql},
     models::index::Index,
 };
 
@@ -25,7 +25,7 @@ fn creates_named_indexes() {
     };
 
     assert_eq!(
-        diff.sql(),
+        diff.sql(&DiffOptions::default()),
         vec![(
             ChangeType::CreateIndex,
             "CREATE INDEX employees_tenant_id_idx ON public.employees USING btree (tenant_id);\n"
@@ -51,7 +51,7 @@ fn recreates_changed_unique_indexes() {
     };
 
     assert_eq!(
-        diff.sql(),
+        diff.sql(&DiffOptions::default()),
         vec![
             (
                 ChangeType::DropIndex,

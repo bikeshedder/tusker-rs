@@ -1,6 +1,39 @@
 use std::{cmp::Reverse, collections::HashMap, fmt::Debug, hash::Hash};
 
+use serde::{Deserialize, Serialize};
+
 use crate::models::constraint::ConstraintType;
+
+/// Controls how the removal of an enum value is handled by `diff` and `check`.
+///
+/// PostgreSQL cannot drop a value from an existing enum type, so removing one is
+/// inherently an unsafe, manual operation. This setting decides what tusker does
+/// when it detects that a target enum no longer contains a value present in the
+/// source enum.
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RemovedEnumValue {
+    /// Ignore removed enum values completely. `diff` emits nothing and `check`
+    /// considers the enums equal.
+    Ignore,
+    /// Report removed enum values on `stderr` but don't include them in the
+    /// output of `diff` or in the result of `check`.
+    Warn,
+    /// Emit the unsafe migration required to recreate the enum, safeguarded by a
+    /// `RAISE EXCEPTION` that forces the user to review the generated migration.
+    /// This is the default and the historical behavior.
+    #[default]
+    Unsafe,
+}
+
+/// Options that influence how a diff is rendered into SQL and how two
+/// inspections are compared for equivalence.
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct DiffOptions {
+    /// How the removal of enum values is handled.
+    pub removed_enum_value: RemovedEnumValue,
+}
 
 #[derive(Debug, Eq, PartialEq)]
 /// Result of comparing two keyed collections of schema objects.
@@ -104,5 +137,5 @@ pub enum ChangeType {
 /// Converts a diff into ordered SQL fragments.
 pub trait DiffSql {
     /// Produces SQL statements paired with their ordering bucket.
-    fn sql(&self) -> Vec<(ChangeType, String)>;
+    fn sql(&self, opts: &DiffOptions) -> Vec<(ChangeType, String)>;
 }

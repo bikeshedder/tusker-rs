@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 use crate::{
-    diff::{ChangeType, Diff, DiffSql},
+    diff::{ChangeType, Diff, DiffOptions, DiffSql},
     sql::{quote_ident, StatementBuilder},
 };
 
@@ -229,7 +229,7 @@ pub enum Identity {
 }
 
 impl DiffSql for Diff<'_, Column> {
-    fn sql(&self) -> Vec<(ChangeType, String)> {
+    fn sql(&self, _opts: &DiffOptions) -> Vec<(ChangeType, String)> {
         let mut v = Vec::new();
         for a in &self.a_only {
             v.push((ChangeType::DropColumn, a.drop_sql()));

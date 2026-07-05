@@ -1,7 +1,7 @@
 use itertools::Itertools;
 
 use crate::{
-    diff::{ChangeType, Diff, DiffSql},
+    diff::{ChangeType, Diff, DiffOptions, DiffSql},
     queries::EnumRow,
     sql::quote_ident,
 };
@@ -38,7 +38,7 @@ impl Enum {
         )
     }
 
-    fn alter_sql(&self, previous: &Self) -> Vec<(ChangeType, String)> {
+    pub(crate) fn alter_sql(&self, previous: &Self, _opts: &DiffOptions) -> Vec<(ChangeType, String)> {
         if can_safely_add_values(previous, self) {
             self.add_value_sql(previous)
         } else {
@@ -130,14 +130,14 @@ impl From<EnumRow> for Enum {
 }
 
 impl DiffSql for Diff<'_, Enum> {
-    fn sql(&self) -> Vec<(ChangeType, String)> {
+    fn sql(&self, opts: &DiffOptions) -> Vec<(ChangeType, String)> {
         let mut v = Vec::new();
         for a in &self.a_only {
             v.push((ChangeType::DropType, a.drop_sql()));
         }
         for (a, b) in &self.a_and_b {
             if a != b {
-                v.extend(b.alter_sql(a));
+                v.extend(b.alter_sql(a, opts));
             }
         }
         for b in &self.b_only {

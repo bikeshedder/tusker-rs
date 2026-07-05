@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use itertools::Itertools;
 
-use crate::diff::{diff, ChangeType, Diff, DiffSql};
+use crate::diff::{diff, ChangeType, Diff, DiffOptions, DiffSql};
 
 use super::{
     constraint::Constraint, domain::Domain, extension::Extension, index::Index, r#enum::Enum,
@@ -143,21 +143,21 @@ impl Schema {
 }
 
 impl DiffSql for Diff<'_, Schema> {
-    fn sql(&self) -> Vec<(ChangeType, String)> {
+    fn sql(&self, opts: &DiffOptions) -> Vec<(ChangeType, String)> {
         let mut v = Vec::new();
         if !self.a_only.is_empty() {
             todo!("Schema creation not supported, yet.")
         }
         for (a, b) in &self.a_and_b {
-            v.extend(a.diff_triggers(b).sql());
-            v.extend(a.diff_enums(b).sql());
-            v.extend(a.diff_domains(b).sql());
-            v.extend(a.diff_sequences(b).sql());
-            v.extend(a.diff_extensions(b).sql());
-            v.extend(a.diff_routines(b).sql());
-            v.extend(a.diff_tables(b).sql());
-            v.extend(a.diff_indexes(b).sql());
-            v.extend(a.diff_constraints(b).sql());
+            v.extend(a.diff_triggers(b).sql(opts));
+            v.extend(a.diff_enums(b).sql(opts));
+            v.extend(a.diff_domains(b).sql(opts));
+            v.extend(a.diff_sequences(b).sql(opts));
+            v.extend(a.diff_extensions(b).sql(opts));
+            v.extend(a.diff_routines(b).sql(opts));
+            v.extend(a.diff_tables(b).sql(opts));
+            v.extend(a.diff_indexes(b).sql(opts));
+            v.extend(a.diff_constraints(b).sql(opts));
         }
         if !self.b_only.is_empty() {
             println!("{:?}", self.b_only);

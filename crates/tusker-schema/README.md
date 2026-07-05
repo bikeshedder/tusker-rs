@@ -15,7 +15,11 @@ routines, triggers, enums, domains, sequences, and extensions.
 ## Example
 
 ```rust
-use tusker_schema::{diff::DiffSql, inspect, models::schema::join_sql};
+use tusker_schema::{
+    diff::{DiffOptions, DiffSql},
+    inspect,
+    models::schema::join_sql,
+};
 
 async fn diff_databases(
     from: &tokio_postgres::Client,
@@ -23,7 +27,7 @@ async fn diff_databases(
 ) -> anyhow::Result<String> {
     let from = inspect(from).await?;
     let to = inspect(to).await?;
-    Ok(join_sql(from.diff(&to).sql()))
+    Ok(join_sql(from.diff(&to).sql(&DiffOptions::default())))
 }
 ```
 

@@ -1,7 +1,7 @@
 use std::collections::{BTreeSet, HashMap};
 
 use crate::{
-    diff::{ChangeType, Diff, DiffSql},
+    diff::{ChangeType, Diff, DiffOptions, DiffSql},
     queries::{RoutineDependencyRow, RoutineKind, RoutineRow},
     sql::quote_ident,
 };
@@ -101,7 +101,7 @@ impl From<RoutineRow> for Routine {
 }
 
 impl DiffSql for Diff<'_, Routine> {
-    fn sql(&self) -> Vec<(ChangeType, String)> {
+    fn sql(&self, _opts: &DiffOptions) -> Vec<(ChangeType, String)> {
         let mut v = Vec::new();
 
         let mut drops = self.a_only.clone();
@@ -205,7 +205,7 @@ fn topological_order(mut routines: Vec<&Routine>, reverse: bool) -> Vec<&Routine
 #[cfg(test)]
 mod tests {
     use crate::{
-        diff::{Diff, DiffSql},
+        diff::{Diff, DiffOptions, DiffSql},
         models::{routine::Routine, schema::join_sql},
         queries::RoutineKind,
     };
@@ -245,7 +245,7 @@ mod tests {
         };
 
         assert_eq!(
-            join_sql(diff.sql()),
+            join_sql(diff.sql(&DiffOptions::default())),
             "CREATE OR REPLACE FUNCTION public.base_value(a integer)\nRETURNS integer\nLANGUAGE sql\nAS $$\n    SELECT a + 1;\n$$;\n\nCREATE OR REPLACE FUNCTION public.wrapper_value(a integer)\nRETURNS integer\nLANGUAGE sql\nAS $$\n    SELECT public.base_value(a);\n$$;\n"
         );
     }
@@ -271,7 +271,7 @@ mod tests {
         };
 
         assert_eq!(
-            join_sql(diff.sql()),
+            join_sql(diff.sql(&DiffOptions::default())),
             "DROP FUNCTION \"public\".\"wrapper_value\"(a integer);\n\nDROP FUNCTION \"public\".\"base_value\"(a integer);\n\nCREATE OR REPLACE FUNCTION public.base_value(a integer)\nRETURNS integer\nLANGUAGE sql\nAS $$\n    SELECT a + 2;\n$$;\n\nCREATE OR REPLACE FUNCTION public.wrapper_value(a integer)\nRETURNS integer\nLANGUAGE sql\nAS $$\n    SELECT public.base_value(a) + 10;\n$$;\n"
         );
     }

@@ -1,5 +1,5 @@
 use crate::{
-    diff::{diff, ChangeType, Diff, DiffSql},
+    diff::{diff, ChangeType, Diff, DiffOptions, DiffSql},
     queries::DomainRow,
     sql::quote_ident,
 };
@@ -189,7 +189,7 @@ impl From<DomainRow> for Domain {
 }
 
 impl DiffSql for Diff<'_, Domain> {
-    fn sql(&self) -> Vec<(ChangeType, String)> {
+    fn sql(&self, _opts: &DiffOptions) -> Vec<(ChangeType, String)> {
         let mut v = Vec::new();
         for a in &self.a_only {
             v.push((ChangeType::DropType, a.drop_sql()));

@@ -1,5 +1,5 @@
 use tusker_schema::{
-    diff::{ChangeType, DiffSql},
+    diff::{ChangeType, DiffOptions, DiffSql},
     models::{extension::Extension, schema::Schema},
 };
 
@@ -17,7 +17,7 @@ fn creates_extensions() {
     );
 
     assert_eq!(
-        from.diff_extensions(&to).sql(),
+        from.diff_extensions(&to).sql(&DiffOptions::default()),
         vec![(
             ChangeType::CreateExtension,
             "CREATE EXTENSION IF NOT EXISTS \"hstore\" WITH SCHEMA \"public\" VERSION '1.8';\n"
@@ -48,7 +48,7 @@ fn alters_extension_schema_and_version() {
     );
 
     assert_eq!(
-        from.diff_extensions(&to).sql(),
+        from.diff_extensions(&to).sql(&DiffOptions::default()),
         vec![
             (
                 ChangeType::AlterExtension,
@@ -76,7 +76,7 @@ fn drops_extensions() {
     let to = Schema::new("public");
 
     assert_eq!(
-        from.diff_extensions(&to).sql(),
+        from.diff_extensions(&to).sql(&DiffOptions::default()),
         vec![(
             ChangeType::DropExtension,
             "DROP EXTENSION IF EXISTS \"hstore\";\n".into()

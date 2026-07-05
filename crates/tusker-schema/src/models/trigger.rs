@@ -1,5 +1,5 @@
 use crate::{
-    diff::{ChangeType, Diff, DiffSql},
+    diff::{ChangeType, Diff, DiffOptions, DiffSql},
     queries::TriggerRow,
     sql::quote_ident,
 };
@@ -76,7 +76,7 @@ impl From<TriggerRow> for Trigger {
 }
 
 impl DiffSql for Diff<'_, Trigger> {
-    fn sql(&self) -> Vec<(ChangeType, String)> {
+    fn sql(&self, _opts: &DiffOptions) -> Vec<(ChangeType, String)> {
         let mut v = Vec::new();
         for a in &self.a_only {
             v.push((ChangeType::DropTrigger, a.drop_sql()));

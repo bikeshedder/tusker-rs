@@ -1,5 +1,5 @@
 use crate::{
-    diff::{ChangeType, Diff, DiffSql},
+    diff::{ChangeType, Diff, DiffOptions, DiffSql},
     queries::IndexRow,
     sql::quote_ident,
 };
@@ -46,7 +46,7 @@ impl From<IndexRow> for Index {
 }
 
 impl DiffSql for Diff<'_, Index> {
-    fn sql(&self) -> Vec<(ChangeType, String)> {
+    fn sql(&self, _opts: &DiffOptions) -> Vec<(ChangeType, String)> {
         let mut v = Vec::new();
         for a in &self.a_only {
             v.push((ChangeType::DropIndex, a.drop_sql()));
