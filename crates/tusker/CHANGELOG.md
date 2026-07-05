@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add support for array and composite parameter and result column types in `tusker query` metadata.
 
+### Changed
+
+- `tusker check` is now defined as an empty `tusker diff` and defaults to the
+  same direction (migrations → schema), so the two commands can never disagree.
+
 ## [0.6.1] - 2026-05-23
 
 ### Fixed

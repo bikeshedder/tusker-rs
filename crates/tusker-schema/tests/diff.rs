@@ -274,3 +274,34 @@ async fn diff(
 
     test_db.cleanup().await.unwrap();
 }
+
+/// `tusker check` is defined as an empty `tusker diff`, not as structural
+/// equality. Reordering a table's columns changes the derived `==` (which is
+/// order-sensitive) but not the diff (`diff` matches columns by name and cannot
+/// emit a reordering), so `check` must follow the diff and report the two
+/// schemas as equivalent rather than reporting a difference `diff` cannot
+/// explain.
+#[tokio::test]
+async fn check_follows_diff_not_structural_equality() {
+    let mut test_db = TestDatabase::new().await.unwrap();
+    let client = &mut test_db.db_client;
+
+    let a = inspect_sql(client, "CREATE TABLE t (a integer, b integer);")
+        .await
+        .unwrap();
+    let b = inspect_sql(client, "CREATE TABLE t (b integer, a integer);")
+        .await
+        .unwrap();
+    let opts = DiffOptions::default();
+
+    // Structural equality is order-sensitive, so it reports a difference...
+    assert_ne!(a, b);
+    // ...but the diff matches columns by name and is empty in both directions...
+    assert!(join_sql(a.diff(&b).sql(&opts)).trim().is_empty());
+    assert!(join_sql(b.diff(&a).sql(&opts)).trim().is_empty());
+    // ...so `check` (an empty diff) considers the two schemas equivalent.
+    assert!(a.equivalent(&b, &opts));
+    assert!(b.equivalent(&a, &opts));
+
+    test_db.cleanup().await.unwrap();
+}
