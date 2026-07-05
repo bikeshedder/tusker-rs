@@ -3,6 +3,7 @@ use std::str::FromStr;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use tokio_postgres::{Client as PgClient, Config as PgConfig, NoTls};
+use tusker_schema::diff::{DiffOptions, RemovedEnumValue};
 use uzers::get_current_username;
 
 #[derive(Debug, Default, Serialize, Deserialize)]
@@ -59,6 +60,7 @@ impl Config {
             diff: DiffConfig {
                 privileges: default_diff_privileges(),
                 safe: default_diff_safe(),
+                removed_enum_value: RemovedEnumValue::default(),
             },
             queries: QueriesConfig {
                 filename: default_queries_filename(),
@@ -113,6 +115,9 @@ pub(crate) struct DiffConfig {
     pub(crate) safe: bool,
     #[serde(default = "default_diff_privileges")]
     pub(crate) privileges: bool,
+    /// How the removal of enum values is handled by `diff` and `check`.
+    #[serde(default)]
+    pub(crate) removed_enum_value: RemovedEnumValue,
 }
 
 fn default_diff_safe() -> bool {
@@ -123,11 +128,21 @@ fn default_diff_privileges() -> bool {
     true
 }
 
+impl DiffConfig {
+    /// Builds the [`DiffOptions`] passed into the schema diff engine.
+    pub(crate) fn options(&self) -> DiffOptions {
+        DiffOptions {
+            removed_enum_value: self.removed_enum_value,
+        }
+    }
+}
+
 impl Default for DiffConfig {
     fn default() -> Self {
         Self {
             safe: default_diff_safe(),
             privileges: default_diff_privileges(),
+            removed_enum_value: RemovedEnumValue::default(),
         }
     }
 }

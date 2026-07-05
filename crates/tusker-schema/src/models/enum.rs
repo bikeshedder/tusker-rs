@@ -1,7 +1,7 @@
 use itertools::Itertools;
 
 use crate::{
-    diff::{ChangeType, Diff, DiffOptions, DiffSql},
+    diff::{ChangeType, Diff, DiffOptions, DiffSql, RemovedEnumValue},
     queries::EnumRow,
     sql::quote_ident,
 };
@@ -38,14 +38,42 @@ impl Enum {
         )
     }
 
-    pub(crate) fn alter_sql(&self, previous: &Self, _opts: &DiffOptions) -> Vec<(ChangeType, String)> {
+    /// Generates the migration to turn `previous` into `self`, honoring the
+    /// configured handling of removed enum values. Returns an empty vector when
+    /// there is nothing to do, which also makes this the predicate used by
+    /// `tusker check` to decide whether two enums are equivalent.
+    pub(crate) fn alter_sql(
+        &self,
+        previous: &Self,
+        opts: &DiffOptions,
+    ) -> Vec<(ChangeType, String)> {
         if can_safely_add_values(previous, self) {
-            self.add_value_sql(previous)
-        } else {
-            vec![(
-                ChangeType::AlterType,
-                format!(
-                    "-- WARNING: enum {}.{} changed incompatibly and no safe automatic migration was generated.\n\
+            return self.add_value_sql(previous);
+        }
+        // The removal of values (with the remaining ones keeping their relative
+        // order) is the one incompatible change the user can configure. Every
+        // other incompatible change -- renames, reorderings, or a mix that also
+        // removes values -- always falls through to the guarded migration.
+        if is_removal_only(previous, self) {
+            match opts.removed_enum_value {
+                RemovedEnumValue::Ignore => return Vec::new(),
+                RemovedEnumValue::Warn => {
+                    eprintln!(
+                        "warning: enum {}.{} drops value(s) {}; \
+                         no migration generated (removed_enum_value = \"warn\")",
+                        self.schema,
+                        self.name,
+                        join_labels(&removed_labels(previous, self)),
+                    );
+                    return Vec::new();
+                }
+                RemovedEnumValue::Unsafe => {}
+            }
+        }
+        vec![(
+            ChangeType::AlterType,
+            format!(
+                "-- WARNING: enum {}.{} changed incompatibly and no safe automatic migration was generated.\n\
 -- Previous labels: {}\n\
 -- Target labels: {}\n\
 -- Suggested manual approach:\n\
@@ -58,15 +86,14 @@ BEGIN\n\
     RAISE EXCEPTION 'Unsafe enum migration required for {}.{}';\n\
 END\n\
 $$;\n",
-                    quote_ident(&self.schema),
-                    quote_ident(&self.name),
-                    join_labels(&previous.labels),
-                    join_labels(&self.labels),
-                    self.schema,
-                    self.name,
-                ),
-            )]
-        }
+                quote_ident(&self.schema),
+                quote_ident(&self.name),
+                join_labels(&previous.labels),
+                join_labels(&self.labels),
+                self.schema,
+                self.name,
+            ),
+        )]
     }
 
     fn add_value_sql(&self, previous: &Self) -> Vec<(ChangeType, String)> {
@@ -163,4 +190,29 @@ fn can_safely_add_values(previous: &Enum, new: &Enum) -> bool {
         .labels
         .iter()
         .filter(|label| previous.labels.contains(label)))
+}
+
+/// Returns `true` if `new` is `previous` with one or more values removed while
+/// the remaining values keep their relative order -- i.e. a pure removal, with
+/// no additions, renames, or reorderings.
+fn is_removal_only(previous: &Enum, new: &Enum) -> bool {
+    new.labels.len() < previous.labels.len() && is_subsequence(&new.labels, &previous.labels)
+}
+
+/// Returns `true` if every element of `sub` appears in `seq` in the same order
+/// (not necessarily contiguously).
+fn is_subsequence(sub: &[String], seq: &[String]) -> bool {
+    let mut seq = seq.iter();
+    sub.iter()
+        .all(|label| seq.any(|candidate| candidate == label))
+}
+
+/// The labels present in `previous` but no longer present in `new`.
+fn removed_labels(previous: &Enum, new: &Enum) -> Vec<String> {
+    previous
+        .labels
+        .iter()
+        .filter(|label| !new.labels.contains(label))
+        .cloned()
+        .collect()
 }

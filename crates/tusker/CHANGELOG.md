@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add support for array and composite parameter and result column types in `tusker query` metadata.
+- Add the `[diff] removed_enum_value` configuration option (`"unsafe"` — the
+  default and previous behavior, `"warn"`, or `"ignore"`) controlling how the
+  removal of an enum value is handled by `tusker diff` and `tusker check`.
 
 ### Changed
 

@@ -1,11 +1,7 @@
 use anyhow::Result;
 use clap::Parser;
 use tokio::{fs::File, io::AsyncReadExt};
-use tusker_schema::{
-    diff::{DiffOptions, DiffSql},
-    models::schema::join_sql,
-    Inspection,
-};
+use tusker_schema::{diff::DiffSql, models::schema::join_sql, Inspection};
 
 use crate::{
     config::{Config, DatabaseConfig},
@@ -86,7 +82,7 @@ pub(crate) async fn cmd(cfg: &Config, args: &DiffArgs) -> Result<()> {
     let to = inspect_backend(cfg, &mut db, to).await?;
 
     let diff = from.diff(&to);
-    println!("{}", join_sql(diff.sql(&DiffOptions::default())));
+    println!("{}", join_sql(diff.sql(&cfg.diff.options())));
 
     // XXX it would be nice if this was an actual drop guard
     db.drop().await?;

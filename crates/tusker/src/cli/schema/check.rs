@@ -2,7 +2,6 @@ use std::process::exit;
 
 use anyhow::Result;
 use clap::Parser;
-use tusker_schema::diff::DiffOptions;
 
 use crate::{config::Config, db::DiffDatabase};
 
@@ -10,9 +9,11 @@ use super::{diff::inspect_backend, Backend};
 
 #[derive(Copy, Clone, Debug, Parser)]
 pub(crate) struct CheckArgs {
-    // `check` reports "identical" exactly when `tusker diff` produces no
-    // migration, so it defaults to the same direction as `diff`
-    // (migrations -> schema) to evaluate the exact same change.
+    // The default direction mirrors `tusker diff` (migrations -> schema) so that
+    // `check` and `diff` evaluate the exact same change. This matters once the
+    // outcome becomes direction-dependent, e.g. under
+    // `[diff] removed_enum_value = "ignore"` a value removed on the way to the
+    // target schema is not a difference, while adding one still is.
     /// from-backend for the diff operation
     #[arg(default_value_t = Backend::Migrations)]
     from: Backend,
@@ -36,7 +37,7 @@ pub(crate) async fn cmd(cfg: &Config, args: &CheckArgs) -> Result<()> {
     let from = inspect_backend(cfg, &mut db, args.from).await?;
     let to = inspect_backend(cfg, &mut db, args.to).await?;
     db.drop().await?;
-    if from.equivalent(&to, &DiffOptions::default()) {
+    if from.equivalent(&to, &cfg.diff.options()) {
         println!("Schemas are identical");
         Ok(())
     } else {

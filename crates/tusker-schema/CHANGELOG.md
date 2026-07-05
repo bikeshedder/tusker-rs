@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `RemovedEnumValue` and `DiffOptions` to configure how the removal of an
+  enum value is handled. `DiffSql::sql` now takes a `&DiffOptions` argument, and
+  `Inspection::equivalent` performs the same options-aware comparison that
+  `tusker check` relies on.
+
 ## [0.1.1] - 2026-05-23
 
 ### Changed
