@@ -14,6 +14,11 @@ pub struct Column {
     pub r#type: String,
     /// Whether the column is declared `NOT NULL`.
     pub notnull: bool,
+    /// Name of the backing `NOT NULL` constraint, when the server exposes one
+    /// (PostgreSQL 18+). `None` on older servers, which do not catalogue
+    /// `NOT NULL` constraints by name.
+    #[serde(default)]
+    pub notnull_name: Option<String>,
     /// Identity generation mode.
     pub identity: Identity,
     /// Generated column mode.

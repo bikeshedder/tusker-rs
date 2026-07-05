@@ -6,6 +6,7 @@ fn generated_columns_use_parenthesized_expression_without_default_clause() {
         name: "vacation_during".into(),
         r#type: "daterange".into(),
         notnull: false,
+        notnull_name: None,
         identity: Identity::No,
         generated: Generated::Stored,
         default: Some("daterange(start_date, end_date, '[]'::text)".into()),
@@ -23,6 +24,7 @@ fn generated_columns_wrap_multiline_case_expressions() {
         name: "gross_minutes".into(),
         r#type: "integer".into(),
         notnull: false,
+        notnull_name: None,
         identity: Identity::No,
         generated: Generated::Stored,
         default: Some(

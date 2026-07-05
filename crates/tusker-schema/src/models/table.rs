@@ -105,9 +105,31 @@ impl DiffSql for Diff<'_, Table> {
             v.push((ChangeType::DropTable, a.drop()));
         }
         for (a, b) in &self.a_and_b {
-            let col_sql = a.diff_columns(b).sql(opts);
+            let cols = a.diff_columns(b);
+            let col_sql = cols.sql(opts);
             if !col_sql.is_empty() {
                 v.push((ChangeType::AlterColumn, b.alter_sql(col_sql)));
+            }
+            // Reconcile NOT NULL constraint names that drifted between the two
+            // sides (PostgreSQL 18+) -- e.g. a column that was renamed keeps the
+            // constraint name derived from its former name. Emitted as a
+            // standalone statement because RENAME CONSTRAINT cannot be combined
+            // with other ALTER TABLE actions.
+            for (col_a, col_b) in &cols.a_and_b {
+                if let (Some(from), Some(to)) = (&col_a.notnull_name, &col_b.notnull_name) {
+                    if from != to {
+                        v.push((
+                            ChangeType::AlterColumn,
+                            format!(
+                                "ALTER TABLE {}.{} RENAME CONSTRAINT {} TO {};\n",
+                                quote_ident(&b.schema),
+                                quote_ident(&b.name),
+                                quote_ident(from),
+                                quote_ident(to),
+                            ),
+                        ));
+                    }
+                }
             }
         }
         for b in &self.b_only {

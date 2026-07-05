@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Inspection::equivalent` performs the same options-aware comparison that
   `tusker check` relies on.
 
+### Fixed
+
+- Reconcile drifted `NOT NULL` constraint names (PostgreSQL 18+). A column
+  renamed with `ALTER TABLE ... RENAME COLUMN` keeps the constraint name derived
+  from its former name, causing `tusker diff` to report no changes while
+  `pg_dump` still showed a difference. The diff now emits a `RENAME CONSTRAINT`
+  statement to reconcile the two.
+
 ## [0.1.1] - 2026-05-23
 
 ### Changed

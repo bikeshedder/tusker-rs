@@ -7,6 +7,7 @@ SELECT
             'name', a.attname,
             'type', format_type(a.atttypid, a.atttypmod),
             'notnull', a.attnotnull,
+            'notnull_name', a_notnull.conname,
             'identity', a.attidentity,
             'generated', a.attgenerated,
             'default', pg_get_expr(a_def.adbin, a_def.adrelid)
@@ -20,5 +21,11 @@ FROM pg_catalog.pg_class AS cls
     JOIN pg_catalog.pg_type a_t ON a_t.oid = a.atttypid
     LEFT JOIN pg_catalog.pg_attrdef AS a_def
         ON a_def.adrelid = cls.oid AND a_def.adnum = a.attnum
+    -- Named NOT NULL constraints (PostgreSQL 18+). On older servers this join
+    -- matches nothing and `notnull_name` is null.
+    LEFT JOIN pg_catalog.pg_constraint AS a_notnull
+        ON a_notnull.conrelid = cls.oid
+        AND a_notnull.contype = 'n'
+        AND a_notnull.conkey = ARRAY[a.attnum]::int2[]
 WHERE ns.nspname = $1
 GROUP BY ns.nspname, cls.relname, cls.relkind, cls.oid;
