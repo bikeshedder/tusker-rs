@@ -12,7 +12,7 @@ categories = ["database"]
 
 [dependencies]
 anyhow = "1.0.75"
-itertools = "0.14.0"
+itertools = "0.15.0"
 postgres-types = { version = "0.2.13", features = [
     "derive",
     "with-serde_json-1",
@@ -26,4 +26,4 @@ thiserror = "2"
 [dev-dependencies]
 rstest = "0.26"
 tokio = { version = "1.34.0", features = ["fs", "macros", "rt-multi-thread"] }
-toml = "0.8"
+toml = "1"
