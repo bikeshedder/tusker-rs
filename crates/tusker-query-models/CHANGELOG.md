@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-06
+
 ### Added
 
 - Add structured SQL type metadata for PostgreSQL array and composite parameter and result column types
@@ -25,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[unreleased]: https://github.com/bikeshedder/tusker/compare/tusker-query-models-v0.1.1...HEAD
+[unreleased]: https://github.com/bikeshedder/tusker/compare/tusker-query-models-v0.2.0...HEAD
+[0.2.0]: https://github.com/bikeshedder/tusker/releases/tag/tusker-query-models-v0.2.0
 [0.1.1]: https://github.com/bikeshedder/tusker/releases/tag/tusker-query-models-v0.1.1
 [0.1.0]: https://github.com/bikeshedder/tusker/releases/tag/tusker-query-models-v0.1.0

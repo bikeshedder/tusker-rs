@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-07-06
+
 ### Added
 
 - Add support for array and composite parameter and result column types in `tusker query` metadata.
@@ -16,8 +18,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking:** the `tusker migration` and `tusker migrate` commands no longer
+  accept `--migrations-dir`. Migrations are loaded from the `migrations.filename`
+  glob in the configuration file (default `db/migrations/**/*.sql`).
 - `tusker check` is now defined as an empty `tusker diff` and defaults to the
   same direction (migrations → schema), so the two commands can never disagree.
+
+### Fixed
+
+- `tusker diff` now reconciles drifted `NOT NULL` constraint names on
+  PostgreSQL 18+. A column renamed with `ALTER TABLE ... RENAME COLUMN` kept the
+  constraint name derived from its former name, so `tusker diff` reported no
+  changes while `pg_dump` still showed a difference; it now emits a
+  `RENAME CONSTRAINT` statement to reconcile the two.
 
 ## [0.6.1] - 2026-05-23
 
@@ -39,6 +52,7 @@ implementation on [PyPI](https://pypi.org/project/tusker/).
 
 - Initial release
 
-[unreleased]: https://github.com/bikeshedder/tusker/compare/tusker-v0.6.1...HEAD
+[unreleased]: https://github.com/bikeshedder/tusker/compare/tusker-v0.7.0...HEAD
+[0.7.0]: https://github.com/bikeshedder/tusker/releases/tag/tusker-v0.7.0
 [0.6.1]: https://github.com/bikeshedder/tusker/releases/tag/tusker-v0.6.1
 [0.6.0]: https://github.com/bikeshedder/tusker/releases/tag/tusker-v0.6.0
