@@ -18,29 +18,29 @@ and 18, and the Rust test suite runs against all three versions in CI.
 
 | Feature | Status | Notes |
 | --- | --- | --- |
-| Schemas | Not yet | Inspection exists, but creating/dropping whole schemas is still `todo!()` in the schema diff layer. |
-| Tables | Done | Supports create/drop and many column-level alters for ordinary tables. |
-| Columns | Partial | Supports common type/default/nullability/identity changes; generated-column alters are still treated as unsupported and emitted as warnings. |
-| Constraints | Partial | Supports table `CHECK`, `PRIMARY KEY`, `UNIQUE`, `EXCLUDE`, and `FOREIGN KEY` ordering. Named `NOT NULL` constraints introduced in PostgreSQL 18 are currently skipped. |
-| Indexes | Done | Supports standalone named indexes, including `CREATE INDEX` and `CREATE UNIQUE INDEX`. Constraint-backed indexes are handled through table constraints instead of as standalone indexes. |
-| Views | Not yet | Views and materialized views are inspected, but they are not currently diffed or emitted. |
-| Materialized views | Not yet | Inspected only; no diff/create/drop support yet. |
-| Functions | Partial | Supports normal functions and procedures, with dependency-aware ordering between routines. Aggregates and window functions are not currently diffed. |
-| Procedures | Done | Supported through the same routine diff path as functions. |
-| Triggers | Done | Supports create/drop and trigger enabled-state restoration. |
-| Sequences | Done | Supports create/drop/alter for standalone sequences. |
-| Enums | Done | Supports create/drop and safe additive changes. Reordering/removing enum labels intentionally fails with guidance instead of generating unsafe SQL. |
-| Domains | Done | Supports create/drop and common alters. Base type changes intentionally stop with a manual-action error instead of generating unsafe SQL. |
-| Extensions | Done | Supports create/drop, schema moves, and version updates. |
-| Composite types | Not yet | No inspection/diff support yet. |
-| Range types | Not yet | No dedicated support for user-defined range or multirange types yet. |
-| Collations | Not yet | No inspection/diff support yet. |
-| Comments | Not yet | No diff support yet for `COMMENT ON` statements or object descriptions. |
-| Privileges / ownership / GRANTs | Not yet | No privilege diff support yet. |
-| Row-level security policies | Not yet | No inspection/diff support yet. |
-| Foreign tables / FDWs | Not yet | Not currently inspected as diffable relations. |
-| Partitioned tables | Not yet | Partitioned tables are currently skipped by relation inspection. |
-| Dependencies beyond routines | Partial | Routine dependency ordering exists. General dependency tracking across views, types, tables, and other objects is still incomplete. |
+| Schemas | ❌ | Inspection exists, but creating/dropping whole schemas is still `todo!()` in the schema diff layer. |
+| Tables | ✅ | Supports create/drop and many column-level alters for ordinary tables. |
+| Columns | 🚧 | Supports common type/default/nullability/identity changes; generated-column alters are still treated as unsupported and emitted as warnings. |
+| Constraints | 🚧 | Supports table `CHECK`, `PRIMARY KEY`, `UNIQUE`, `EXCLUDE`, and `FOREIGN KEY` with deterministic drop/create ordering. The `NOT NULL` attribute is diffed at the column level, and drifted named `NOT NULL` constraint names (PostgreSQL 18+, e.g. after a column rename) are reconciled with `RENAME CONSTRAINT`; named `NOT NULL` constraints are otherwise not diffed as standalone objects. |
+| Indexes | ✅ | Supports standalone named indexes, including `CREATE INDEX` and `CREATE UNIQUE INDEX`. Constraint-backed indexes are handled through table constraints instead of as standalone indexes. |
+| Views | ❌ | Views and materialized views are inspected, but they are not currently diffed or emitted. |
+| Materialized views | ❌ | Inspected only; no diff/create/drop support yet. |
+| Functions | 🚧 | Supports normal functions and procedures, with dependency-aware ordering between routines. Aggregates and window functions are not currently diffed. |
+| Procedures | ✅ | Supported through the same routine diff path as functions. |
+| Triggers | ✅ | Supports create/drop and trigger enabled-state restoration. |
+| Sequences | ✅ | Supports create/drop/alter for standalone sequences. |
+| Enums | ✅ | Supports create/drop and safe additive changes. Removing enum values is configurable via `[diff] removed_enum_value` (`unsafe` — the default — fails with guidance, `warn`, or `ignore`); other unsafe rewrites such as reordering labels still fail with guidance. |
+| Domains | ✅ | Supports create/drop and common alters. Base type changes intentionally stop with a manual-action error instead of generating unsafe SQL. |
+| Extensions | ✅ | Supports create/drop, schema moves, and version updates. |
+| Composite types | ❌ | No inspection/diff support yet. |
+| Range types | ❌ | No dedicated support for user-defined range or multirange types yet. |
+| Collations | ❌ | No inspection/diff support yet. |
+| Comments | ❌ | No diff support yet for `COMMENT ON` statements or object descriptions. |
+| Privileges / ownership / GRANTs | ❌ | No privilege diff support yet. |
+| Row-level security policies | ❌ | No inspection/diff support yet. |
+| Foreign tables / FDWs | ❌ | Not currently inspected as diffable relations. |
+| Partitioned tables | ❌ | Partitioned tables are currently skipped by relation inspection. |
+| Dependencies beyond routines | 🚧 | Routine dependency ordering exists. General dependency tracking across views, types, tables, and other objects is still incomplete. |
 
 ## Development
 
@@ -70,9 +70,11 @@ tusker --help
 ## Getting started
 
 At the moment Tusker can diff tables, constraints, normal functions, and enums.
-Enum handling is intentionally conservative: adding enum values is supported, but
-unsafe enum rewrites such as removing or reordering values are emitted as a
-failing migration with guidance instead of silently generating runnable SQL.
+Enum handling is intentionally conservative: adding enum values is supported,
+while unsafe rewrites such as reordering values are emitted as a failing
+migration with guidance instead of silently generating runnable SQL. How the
+removal of an enum value is handled is configurable via the `[diff]
+removed_enum_value` option (see [Configuration](#configuration)).
 
 Once tusker is installed create a new file called `db/schema/fruit.sql`:
 
@@ -170,6 +172,10 @@ filename = "db/migrations/**/*.sql"
 [diff]
 safe = false
 privileges = false
+# How the removal of an enum value is handled: "unsafe" (default; emit a guarded
+# migration that raises an exception), "warn" (report on stderr, emit nothing),
+# or "ignore" (emit nothing).
+removed_enum_value = "unsafe"
 ```
 
 Instead of the exploded form of `host`, `port`, etc. it
@@ -215,7 +221,9 @@ in your `tusker.toml` file.
 
 Some changes are unsafe even when they are not simple drops. For example,
 unsupported enum rewrites deliberately generate SQL that raises an exception
-with a warning instead of trying to apply a dangerous automatic migration.
+with a warning instead of trying to apply a dangerous automatic migration. The
+handling of removed enum values specifically can be tuned with the `[diff]
+removed_enum_value` option.
 
 ## FAQ
 
