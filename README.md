@@ -46,7 +46,7 @@ docker run --rm ghcr.io/bikeshedder/tusker:0.6.1 --help
 ## Project Layout
 
 - [`crates/`](crates/): main project crates
-- [`examples/`](examples/): example applications using project crates
+- [`examples/`](examples/): example applications using `tusker-*` crates
 
 If you want the end-user CLI documentation, installation notes, and the
 current feature/progress overview, start with

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `MigrationSource` trait decoupling migration loading from the runner, with a
+  filesystem `GlobSource` and an embedded `RustEmbedSource` (behind the new opt-in
+  `rust-embed` feature).
+
+### Changed
+
+- **Breaking:** `cli::cmd` and `cli::run` now take a `&dyn MigrationSource`
+  argument; the source is chosen in code rather than via CLI flags.
+- **Breaking:** removed the `--migrations-dir` command-line option. Embedding
+  applications supply a `MigrationSource`; the `tusker` CLI now loads migrations
+  from the `migrations.filename` glob in its config.
+- **Breaking:** renamed the public migration types: The source-loaded item is
+  now `Migration` (was `MigrationFile`), the database row is `AppliedMigration`
+  (was `DbMigration`), and the reconciled pair is `MigrationState`.
+
 ## [0.1.1] - 2026-05-23
 
 ### Changed

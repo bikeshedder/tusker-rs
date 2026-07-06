@@ -8,8 +8,8 @@ use tokio_postgres::{
 use tusker_query::query;
 
 use crate::error::Error;
-use crate::file::MigrationFile;
 use crate::queries;
+use crate::source::Migration;
 
 #[derive(Debug)]
 pub(crate) struct Database {
@@ -40,11 +40,11 @@ impl Database {
         let sql = include_str!("../db/schema.sql");
         self.client.simple_query(sql).await.map(|_| ())
     }
-    pub(crate) async fn get_migrations(&self) -> Result<Vec<DbMigration>, PgError> {
+    pub(crate) async fn get_migrations(&self) -> Result<Vec<AppliedMigration>, PgError> {
         Ok(query(&self.client, queries::MigrationCurrent {})
             .await?
             .iter()
-            .map(|row| DbMigration {
+            .map(|row| AppliedMigration {
                 number: row.number,
                 name: row.name.clone(),
                 hash: row.hash.clone(),
@@ -63,49 +63,39 @@ impl Database {
             })
             .collect())
     }
-    pub(crate) async fn update_migration(
-        &self,
-        migration_file: &MigrationFile,
-    ) -> Result<(), PgError> {
+    pub(crate) async fn update_migration(&self, migration: &Migration) -> Result<(), PgError> {
         let _ = query(
             &self.client,
             queries::MigrationUpdate {
-                number: migration_file.number,
-                name: &migration_file.name,
-                hash: &migration_file.hash,
+                number: migration.number,
+                name: &migration.name,
+                hash: &migration.hash,
             },
         )
         .await?;
         Ok(())
     }
-    pub(crate) async fn apply_migration(
-        &self,
-        migration_file: &MigrationFile,
-        sql: &str,
-    ) -> Result<(), PgError> {
-        self.client.simple_query(sql).await.map(|_| ())?;
+    pub(crate) async fn apply_migration(&self, migration: &Migration) -> Result<(), PgError> {
+        self.client.simple_query(&migration.sql).await.map(|_| ())?;
         // log that migration has been run
         query(
             &self.client,
             queries::MigrationInsert {
-                number: migration_file.number,
-                name: &migration_file.name,
-                hash: &migration_file.hash,
+                number: migration.number,
+                name: &migration.name,
+                hash: &migration.hash,
             },
         )
         .await
         .map(|_| ())
     }
-    pub(crate) async fn fake_migration(
-        &self,
-        migration_file: &MigrationFile,
-    ) -> Result<(), PgError> {
+    pub(crate) async fn fake_migration(&self, migration: &Migration) -> Result<(), PgError> {
         query(
             &self.client,
             queries::MigrationFake {
-                number: migration_file.number,
-                name: &migration_file.name,
-                hash: &migration_file.hash,
+                number: migration.number,
+                name: &migration.name,
+                hash: &migration.hash,
             },
         )
         .await
@@ -118,7 +108,7 @@ impl Database {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct DbMigration {
+pub(crate) struct AppliedMigration {
     pub(crate) number: i32,
     pub(crate) name: String,
     pub(crate) hash: Vec<u8>,

@@ -1,5 +1,4 @@
 use std::io::Write;
-use std::path::{Path, PathBuf};
 
 use clap::{Args, Subcommand};
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
@@ -7,8 +6,8 @@ use tokio_postgres::Config;
 
 use crate::db::Database;
 use crate::error::Error;
-use crate::file::load_migration_files;
-use crate::models::{combine_migrations, Migration, MigrationStatus};
+use crate::models::{combine_migrations, MigrationState, MigrationStatus};
+use crate::source::MigrationSource;
 
 #[derive(Debug, Args)]
 #[clap(about = "Manage database migrations")]
@@ -18,22 +17,10 @@ pub struct Command {
     subcommand: Subcommands,
 }
 
-#[derive(Debug, Args)]
-struct MigrationArgs {
-    #[clap(
-        long,
-        short,
-        value_name = "DIRECTORY",
-        help = "Directory containing the migrations",
-        default_value = "db/migrations"
-    )]
-    migrations_dir: PathBuf,
-}
-
 #[derive(Debug, Subcommand)]
 enum Subcommands {
     #[clap(aliases = &["ls", "list"], about = "List migrations and show their current status")]
-    Status(MigrationArgs),
+    Status,
 
     #[clap(aliases = &["history"], about = "Show migration log")]
     Log,
@@ -41,23 +28,15 @@ enum Subcommands {
     #[clap(aliases = &["apply"], about = "Run migrations on the database")]
     Run(RunArgs),
 
-    Check(MigrationArgs),
+    Check,
 
     #[clap(about = "Fix database migration")]
     Fix(FixArgs),
 }
 
-#[derive(Debug, Args)]
+#[derive(Debug, Clone, Copy, Args)]
 /// Arguments for applying migrations.
 pub struct RunArgs {
-    #[clap(
-        long,
-        short,
-        value_name = "DIRECTORY",
-        help = "Directory containing the migrations",
-        default_value = "db/migrations"
-    )]
-    migrations_dir: PathBuf,
     #[clap(
         long,
         short,
@@ -68,14 +47,6 @@ pub struct RunArgs {
 
 #[derive(Debug, Args)]
 struct FixArgs {
-    #[clap(
-        long,
-        short,
-        value_name = "DIRECTORY",
-        help = "Directory containing the migrations",
-        default_value = "db/migrations"
-    )]
-    migrations_dir: PathBuf,
     #[clap(value_name = "NUMBER")]
     number: i32,
 }
@@ -130,8 +101,11 @@ async fn migration_table_exists(db: &Database) -> Result<bool, Error> {
         .map_err(|e| Error::Pg("Checking status table failed".into(), e))
 }
 
-async fn load_migrations(db: &Database, dir: &Path) -> Result<Vec<Migration>, Error> {
-    let migration_files = load_migration_files(dir)?;
+async fn load_migrations(
+    db: &Database,
+    source: &dyn MigrationSource,
+) -> Result<Vec<MigrationState>, Error> {
+    let migrations = source.load()?;
     let db_migrations = match migration_table_exists(db).await? {
         true => db
             .get_migrations()
@@ -139,26 +113,31 @@ async fn load_migrations(db: &Database, dir: &Path) -> Result<Vec<Migration>, Er
             .map_err(|e| Error::Pg("Unable to load already applied migrations".into(), e))?,
         false => Vec::new(),
     };
-    Ok(combine_migrations(&migration_files, &db_migrations))
+    Ok(combine_migrations(&migrations, &db_migrations))
 }
 
-/// Dispatches a migration subcommand using the given PostgreSQL configuration.
-pub async fn cmd(pg_config: &Config, cmd: &Command) -> Result<(), Error> {
+/// Dispatches a migration subcommand using the given PostgreSQL configuration
+/// and migration source.
+pub async fn cmd(
+    pg_config: &Config,
+    source: &dyn MigrationSource,
+    cmd: &Command,
+) -> Result<(), Error> {
     match &cmd.subcommand {
-        Subcommands::Status(args) => status(pg_config, args).await?,
+        Subcommands::Status => status(pg_config, source).await?,
         Subcommands::Log => log(pg_config).await?,
-        Subcommands::Check(args) => check(pg_config, args).await?,
-        Subcommands::Run(args) => run(pg_config, args).await?,
-        Subcommands::Fix(args) => fix(pg_config, args).await?,
+        Subcommands::Check => check(pg_config, source).await?,
+        Subcommands::Run(args) => run(pg_config, source, args).await?,
+        Subcommands::Fix(args) => fix(pg_config, source, args).await?,
     }
     Ok(())
 }
 
-async fn status(pg_config: &Config, args: &MigrationArgs) -> Result<(), Error> {
+async fn status(pg_config: &Config, source: &dyn MigrationSource) -> Result<(), Error> {
     let mut stdout = StandardStream::stdout(ColorChoice::Always);
     let colors = Colors::new();
     let db = Database::connect(pg_config).await?;
-    let migrations = load_migrations(&db, &args.migrations_dir).await?;
+    let migrations = load_migrations(&db, source).await?;
     if !migration_table_exists(&db).await? {
         writeln!(
             &mut stdout,
@@ -262,11 +241,11 @@ async fn log(pg_config: &Config) -> Result<(), Error> {
     Ok(())
 }
 
-async fn check(pg_config: &Config, args: &MigrationArgs) -> Result<(), Error> {
+async fn check(pg_config: &Config, source: &dyn MigrationSource) -> Result<(), Error> {
     let mut stdout = StandardStream::stdout(ColorChoice::Always);
     let db = Database::connect(pg_config).await?;
     let colors = Colors::new();
-    let migrations = load_migrations(&db, &args.migrations_dir).await?;
+    let migrations = load_migrations(&db, source).await?;
     for migration in migrations {
         if let MigrationStatus::Ok(_, _) = migration.get_status() {
             continue;
@@ -287,11 +266,16 @@ async fn check(pg_config: &Config, args: &MigrationArgs) -> Result<(), Error> {
 }
 
 /// Applies all outstanding migrations in order.
-pub async fn run(pg_config: &Config, args: &RunArgs) -> Result<(), Error> {
+pub async fn run(
+    pg_config: &Config,
+    source: &dyn MigrationSource,
+    args: &RunArgs,
+) -> Result<(), Error> {
+    let _ = args;
     let mut stdout = StandardStream::stdout(ColorChoice::Always);
     let db = Database::connect(pg_config).await?;
     let colors = Colors::new();
-    let migrations = load_migrations(&db, &args.migrations_dir).await?;
+    let migrations = load_migrations(&db, source).await?;
     if !migration_table_exists(&db).await? {
         writeln!(stdout, "Creating migration table...")?;
         db.init()
@@ -310,21 +294,21 @@ pub async fn run(pg_config: &Config, args: &RunArgs) -> Result<(), Error> {
                     "Migration file mismatch found. See `status` for more details".into(),
                 ));
             }
-            MigrationStatus::NotApplied(migration_file) => {
-                write!(stdout, "Applying migration {}: ", migration_file.number)?;
+            MigrationStatus::NotApplied(migration) => {
+                write!(stdout, "Applying migration {}: ", migration.number)?;
                 stdout.set_color(&colors.bold)?;
-                write!(stdout, "{}", migration_file.name)?;
+                write!(stdout, "{}", migration.name)?;
                 stdout.reset()?;
                 writeln!(stdout)?;
-                let sql = migration_file.read()?;
-                db.apply_migration(migration_file, sql.as_str())
-                    .await
-                    .map_err(|e| {
-                        Error::Pg(
-                            format!("Applying migration file {:?} failed", migration_file.path),
-                            e,
-                        )
-                    })?;
+                db.apply_migration(migration).await.map_err(|e| {
+                    Error::Pg(
+                        format!(
+                            "Applying migration {} ({}) failed",
+                            migration.number, migration.name
+                        ),
+                        e,
+                    )
+                })?;
             }
             MigrationStatus::FileMissing(_) => {
                 return Err(Error::Misc(
@@ -339,9 +323,9 @@ pub async fn run(pg_config: &Config, args: &RunArgs) -> Result<(), Error> {
     Ok(())
 }
 
-async fn fix(pg_config: &Config, args: &FixArgs) -> Result<(), Error> {
+async fn fix(pg_config: &Config, source: &dyn MigrationSource, args: &FixArgs) -> Result<(), Error> {
     let db = Database::connect(pg_config).await?;
-    let migrations = load_migrations(&db, &args.migrations_dir).await?;
+    let migrations = load_migrations(&db, source).await?;
     let index = migrations.binary_search_by_key(&args.number, |m| m.number);
     let Ok(index) = index else {
         return Err(Error::Misc(format!(

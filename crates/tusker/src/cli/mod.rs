@@ -54,13 +54,15 @@ pub(crate) async fn run(cfg: &Config) -> Result<()> {
         }
         Commands::Query(args) => query::cmd(cfg, args).await?,
         Commands::Migration(args) => {
-            tusker_migration::cli::cmd(&(cfg.database.pg_config()?), args).await?
+            let source = tusker_migration::GlobSource::new(&cfg.migrations.filename);
+            tusker_migration::cli::cmd(&(cfg.database.pg_config()?), &source, args).await?
         }
         Commands::Config(args) => config::cmd(cfg, args).await?,
         Commands::Diff(args) => schema::diff::cmd(cfg, args).await?,
         Commands::Check(args) => schema::check::cmd(cfg, args).await?,
         Commands::Migrate(args) => {
-            tusker_migration::cli::run(&(cfg.database.pg_config()?), args).await?
+            let source = tusker_migration::GlobSource::new(&cfg.migrations.filename);
+            tusker_migration::cli::run(&(cfg.database.pg_config()?), &source, args).await?
         }
     }
     Ok(())

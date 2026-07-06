@@ -3,9 +3,9 @@
 `tusker-migration` is a small PostgreSQL migration runner for Rust
 applications.
 
-It manages SQL migration files from a directory, keeps a migration history in
-the database, and provides the logic needed to inspect, apply, and reconcile
-migration state.
+It loads SQL migrations from a pluggable source — a directory on disk or files
+embedded directly into your binary — keeps a migration history in the database,
+and provides the logic needed to inspect, apply, and reconcile migration state.
 
 The crate is used by `tusker`, but it is also intended to be embedded directly
 in applications that want Tusker's migration runner without depending on the
@@ -14,7 +14,9 @@ full top-level CLI.
 This crate provides:
 
 - a migration status table schema for PostgreSQL
-- a SQL-file-based migration loader
+- a pluggable `MigrationSource` trait, with a filesystem (`GlobSource`) and an
+  embedded (`RustEmbedSource`, via [`rust-embed`](https://docs.rs/rust-embed))
+  implementation
 - embeddable `clap` command types for status, log, check, run, and fix
 - hash-based detection of renamed or modified migration files
 - migration runner logic that can be called directly from Rust code
@@ -36,8 +38,37 @@ Each migration file name is parsed as:
 <number>_<name>.sql
 ```
 
-The crate computes a SHA-512 hash of each file and compares it with the hash
-stored in the database migration log.
+The crate computes a SHA-512 hash of each migration's SQL and compares it with
+the hash stored in the database migration log.
+
+## Migration sources
+
+Where migrations come from is abstracted behind the `MigrationSource` trait.
+Two implementations ship with the crate:
+
+- `GlobSource` loads migrations from the filesystem using a glob pattern such as
+  `db/migrations/**/*.sql`.
+- `RustEmbedSource` loads migrations embedded into the binary via
+  [`rust-embed`](https://docs.rs/rust-embed). This requires the `rust-embed`
+  feature:
+
+  ```toml
+  tusker-migration = { version = "0.1", features = ["rust-embed"] }
+  ```
+
+  ```ignore
+  use rust_embed::RustEmbed;
+  use tusker_migration::RustEmbedSource;
+
+  #[derive(RustEmbed)]
+  #[folder = "db/migrations"]
+  struct Migrations;
+
+  let source = RustEmbedSource::<Migrations>::new();
+  ```
+
+Applications with other needs can implement `MigrationSource` themselves and
+construct `Migration` values with `Migration::new`.
 
 ## Migration table
 
@@ -79,6 +110,7 @@ That makes it easy to either:
 
 ```rust
 use clap::{Parser, Subcommand};
+use tusker_migration::GlobSource;
 
 #[derive(Parser)]
 struct Args {
@@ -88,13 +120,18 @@ struct Args {
 
 #[derive(Subcommand)]
 enum Command {
-    Migrate(tusker_migration::cli::Command),
+    Migration(tusker_migration::cli::Command),
 }
 
 async fn run(pg_config: &tokio_postgres::Config) -> Result<(), tusker_migration::error::Error> {
     let args = Args::parse();
+    // Pick any `MigrationSource` — a filesystem glob here, or `RustEmbedSource` for
+    // migrations baked into the binary.
+    let source = GlobSource::new("db/migrations/**/*.sql");
     match args.command {
-        Command::Migrate(command) => tusker_migration::cli::cmd(pg_config, &command).await,
+        Command::Migration(command) => {
+            tusker_migration::cli::cmd(pg_config, &source, &command).await
+        }
     }
 }
 ```
@@ -145,22 +182,21 @@ This is a repair tool and should be used carefully.
 In an embedded setup, the usual flow is:
 
 1. expose `tusker_migration::cli::Command` from your own binary
-2. pass your application's PostgreSQL config into `tusker_migration::cli::cmd`
-3. let the crate handle migration status, running, checking, or repair
-
-The migration files themselves still live in a normal directory such as
-`db/migrations/`, and the built-in command types already expose the
-`--migrations-dir` option when you need to override that location.
+2. choose a `MigrationSource` (`GlobSource` for the filesystem, `RustEmbedSource`
+   for embedded migrations, or your own implementation)
+3. pass your application's PostgreSQL config and the source into
+   `tusker_migration::cli::cmd`
+4. let the crate handle migration status, running, checking, or repair
 
 ## How it works
 
 At a high level:
 
-1. Read migration files from a directory
-2. Parse the migration number and name from the file name
-3. Hash the SQL file contents
+1. Load migrations from a `MigrationSource`
+2. Parse the migration number and name from each file name
+3. Hash the SQL contents
 4. Load the current migration state from PostgreSQL
-5. Compare filesystem and database state
+5. Compare source and database state
 6. Apply or repair as requested
 
 The comparison logic is implemented in:
@@ -171,9 +207,9 @@ The database access and migration log operations live in:
 
 - [src/db.rs](src/db.rs)
 
-The file loading and hashing logic lives in:
+The migration sources, loading, and hashing logic live in:
 
-- [src/file.rs](src/file.rs)
+- [src/source/mod.rs](src/source/mod.rs)
 
 ## PostgreSQL only
 
