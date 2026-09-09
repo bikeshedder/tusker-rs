@@ -2,6 +2,7 @@ use std::io::Write;
 
 use clap::{Args, Subcommand};
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
+use time::OffsetDateTime;
 use tokio_postgres::Config;
 
 use crate::db::Database;
@@ -208,14 +209,14 @@ async fn log(pg_config: &Config) -> Result<(), Error> {
         .map_err(|e| Error::Pg("Error fetching migration log".into(), e))?;
     writeln!(
         &mut stdout,
-        "Timestamp                         Operation    # Name                            "
+        "Timestamp                  Operation    #    Name"
     )?;
     writeln!(
         &mut stdout,
-        "---------------------------------------------------------------------------------"
+        "----------------------------------------------------------------------------"
     )?;
     for log_entry in log {
-        write!(stdout, "{} ", log_entry.timestamp)?;
+        write!(stdout, "{} ", format_timestamp(log_entry.timestamp))?;
         match log_entry.operation.as_str() {
             "apply" => {
                 stdout.set_color(&colors.ok)?;
@@ -235,10 +236,32 @@ async fn log(pg_config: &Config) -> Result<(), Error> {
         stdout.reset()?;
         write!(stdout, "{:04} ", log_entry.number)?;
         stdout.set_color(&colors.bold)?;
-        writeln!(stdout, "{} ", log_entry.name)?;
+        writeln!(stdout, "{}", log_entry.name)?;
         stdout.reset()?;
     }
     Ok(())
+}
+
+/// Formats a timestamp as `YYYY-MM-DD HH:MM:SS +HH:MM`.
+///
+/// The `Display` implementation of `OffsetDateTime` prints sub second
+/// precision, seconds of the UTC offset and varies in width causing the
+/// table to be misaligned.
+fn format_timestamp(timestamp: OffsetDateTime) -> String {
+    let offset = timestamp.offset();
+    let sign = if offset.is_negative() { '-' } else { '+' };
+    format!(
+        "{:04}-{:02}-{:02} {:02}:{:02}:{:02} {}{:02}:{:02}",
+        timestamp.year(),
+        u8::from(timestamp.month()),
+        timestamp.day(),
+        timestamp.hour(),
+        timestamp.minute(),
+        timestamp.second(),
+        sign,
+        offset.whole_hours().unsigned_abs(),
+        offset.minutes_past_hour().unsigned_abs(),
+    )
 }
 
 async fn check(pg_config: &Config, source: &dyn MigrationSource) -> Result<(), Error> {
@@ -323,7 +346,11 @@ pub async fn run(
     Ok(())
 }
 
-async fn fix(pg_config: &Config, source: &dyn MigrationSource, args: &FixArgs) -> Result<(), Error> {
+async fn fix(
+    pg_config: &Config,
+    source: &dyn MigrationSource,
+    args: &FixArgs,
+) -> Result<(), Error> {
     let db = Database::connect(pg_config).await?;
     let migrations = load_migrations(&db, source).await?;
     let index = migrations.binary_search_by_key(&args.number, |m| m.number);
@@ -359,4 +386,30 @@ async fn fix(pg_config: &Config, source: &dyn MigrationSource, args: &FixArgs) -
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use time::{Date, Month, OffsetDateTime, Time, UtcOffset};
+
+    use super::format_timestamp;
+
+    fn datetime(nanoseconds: u32, offset: UtcOffset) -> OffsetDateTime {
+        Date::from_calendar_date(2026, Month::July, 7)
+            .unwrap()
+            .with_time(Time::from_hms_nano(8, 49, 5, nanoseconds).unwrap())
+            .assume_offset(offset)
+    }
+
+    #[test]
+    fn test_format_timestamp() {
+        assert_eq!(
+            format_timestamp(datetime(27_663_000, UtcOffset::UTC)),
+            "2026-07-07 08:49:05 +00:00"
+        );
+        assert_eq!(
+            format_timestamp(datetime(0, UtcOffset::from_hms(-5, -30, 0).unwrap())),
+            "2026-07-07 08:49:05 -05:30"
+        );
+    }
 }

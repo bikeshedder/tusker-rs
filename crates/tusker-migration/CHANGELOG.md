@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `migration log` now prints timestamps as `YYYY-MM-DD HH:MM:SS +HH:MM`
+  fixing the occasional misalignments.
+
 ## [0.2.0] - 2026-07-06
 
 ### Added
